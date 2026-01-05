@@ -26,6 +26,14 @@ class User extends Authenticatable
         'accountant_emails',
         'accountant_emails_string',
         'accountant_message',
+        'imap_host',
+        'imap_port',
+        'imap_username',
+        'imap_password',
+        'imap_ssl',
+        'imap_subject_filter',
+        'imap_subject_match_type',
+        'imap_enabled',
     ];
 
     /**
@@ -36,6 +44,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'imap_password', // Hide IMAP password from serialization
     ];
 
     /**
@@ -49,6 +58,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'accountant_emails' => 'array',
+            'imap_ssl' => 'boolean',
+            'imap_enabled' => 'boolean',
         ];
     }
 

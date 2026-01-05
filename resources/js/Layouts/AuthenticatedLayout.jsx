@@ -58,7 +58,10 @@ export default function AuthenticatedLayout({ header, children }) {
                                         Business Details
                                     </Dropdown.Link>
                                     <Dropdown.Link href={route('settings.accountant-emails')}>
-                                        Settings
+                                        Accountant Emails
+                                    </Dropdown.Link>
+                                    <Dropdown.Link href={route('settings.imap')}>
+                                        Email Import (IMAP)
                                     </Dropdown.Link>
                                     <Dropdown.Link href={route('settings.categories.index')}>
                                         Invoice Categories
@@ -129,7 +132,10 @@ export default function AuthenticatedLayout({ header, children }) {
                                 Business Details
                             </ResponsiveNavLink>
                             <ResponsiveNavLink href={route('settings.accountant-emails')}>
-                                Settings
+                                Accountant Emails
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink href={route('settings.imap')}>
+                                Email Import (IMAP)
                             </ResponsiveNavLink>
                             <ResponsiveNavLink href={route('settings.categories.index')}>
                                 Invoice Categories

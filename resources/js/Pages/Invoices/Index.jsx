@@ -28,6 +28,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
         const normalized = status.toLowerCase();
         if (normalized === 'paid') return 'bg-emerald-100 text-emerald-700';
         if (normalized === 'pending') return 'bg-amber-100 text-amber-700';
+        if (normalized === 'draft') return 'bg-blue-100 text-blue-700';
         return 'bg-slate-100 text-slate-700';
     };
 
@@ -147,6 +148,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                             className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-indigo-300 focus:outline-none"
                         >
                             <option value="">All statuses</option>
+                            <option value="draft">Draft</option>
                             <option value="paid">Paid</option>
                             <option value="pending">Pending</option>
                         </select>

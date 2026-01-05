@@ -3,6 +3,8 @@
 namespace App\Jobs;
 
 use App\Models\Attachment;
+use App\Models\BusinessEntity;
+use App\Models\Invoice;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +17,8 @@ class ProcessInvoiceAttachment implements ShouldQueue
     use Queueable;
 
     public function __construct(
-        public Attachment $attachment
+        public Attachment $attachment,
+        public bool $isDraft = false // New parameter for draft mode
     ) {
     }
 
@@ -65,7 +68,7 @@ class ProcessInvoiceAttachment implements ShouldQueue
         $instructions .= "   - 'ΦΠΑ' = VAT\n\n";
 
         $instructions .= "5. Return JSON with fields (MAPPING RULE):\n";
-        $instructions .= "   type: 'income' or 'expense'\n";
+        $instructions .= "   type: 'income' or 'expense' (default to 'expense' unless you clearly see the user's company as the issuer)\n";
         $instructions .= "   supplier: {name, tax_id, tax_office, address, city, country, postal_code, phone, mobile, email}\n";
         $instructions .= "      - IF type = 'expense': supplier = ISSUER (other party)\n";
         $instructions .= "      - IF type = 'income': supplier = RECIPIENT/BUYER (the other party, NOT the user's own company)\n";
@@ -166,10 +169,17 @@ class ProcessInvoiceAttachment implements ShouldQueue
 
             }
 
+            $data = $this->normalizeExtraction($data);
+
             $this->attachment->update([
                 'extracted_data' => $data,
                 'status' => 'extracted',
             ]);
+
+            // If this is a draft invoice from email, create the invoice with draft status
+            if ($this->isDraft) {
+                $this->createDraftInvoice($data);
+            }
 
         } catch (\Exception $e) {
             $this->attachment->update(['status' => 'failed']);
@@ -179,6 +189,134 @@ class ProcessInvoiceAttachment implements ShouldQueue
             ]);
             throw $e;
         }
+    }
+
+    /**
+     * Create a draft invoice from extracted data
+     */
+    private function createDraftInvoice(array $data): void
+    {
+        try {
+            $entity = $this->resolveBusinessEntity($data['supplier'] ?? []);
+
+            $invoiceData = [
+                'user_id' => $this->attachment->user_id,
+                'business_entity_id' => $entity?->id,
+                'type' => $data['type'] ?? 'expense',
+                'status' => 'draft',
+                'number' => $data['invoice_number'] ?? $data['number'] ?? '',
+                'issue_date' => $data['issue_date'] ?? now()->format('Y-m-d'),
+                'due_date' => $data['due_date'] ?? null,
+                'currency' => $data['currency'] ?? 'EUR',
+                'vat_percent' => $data['vat_percent'] ?? 24,
+                'total_net' => floatval($data['total_net'] ?? 0),
+                'vat_amount' => floatval($data['vat_amount'] ?? 0),
+                'total_gross' => floatval($data['total_gross'] ?? 0),
+                'description' => $data['description'] ?? '',
+            ];
+
+            $invoice = Invoice::create($invoiceData);
+
+            // Attach the attachment to the invoice
+            $this->attachment->invoice_id = $invoice->id;
+            $this->attachment->save();
+
+            \Log::info('Draft invoice created from email attachment', [
+                'invoice_id' => $invoice->id,
+                'attachment_id' => $this->attachment->id,
+                'supplier' => $entity?->name,
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to create draft invoice', [
+                'attachment_id' => $this->attachment->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
+    }
+
+    /**
+     * Force safer defaults and normalize extracted payload
+     */
+    private function normalizeExtraction(array $data): array
+    {
+        $company = $this->attachment->user?->company;
+        $companyTax = $company?->tax_id ? $this->normalizeTaxId($company->tax_id) : null;
+
+        // Default type to expense for email imports unless we are clearly the issuer
+        $extractedSupplierTax = $data['supplier']['tax_id'] ?? null;
+        $normalizedSupplierTax = $extractedSupplierTax ? $this->normalizeTaxId($extractedSupplierTax) : null;
+
+        $type = $data['type'] ?? 'expense';
+        if ($this->isDraft) {
+            $type = 'expense';
+            if ($companyTax && $normalizedSupplierTax && $companyTax === $normalizedSupplierTax) {
+                $type = 'income';
+            }
+        }
+
+        $data['type'] = in_array($type, ['income', 'expense']) ? $type : 'expense';
+
+        // Normalize dates to Y-m-d if possible
+        foreach (['issue_date', 'due_date'] as $dateKey) {
+            if (!empty($data[$dateKey])) {
+                try {
+                    $data[$dateKey] = \Carbon\Carbon::parse($data[$dateKey])->format('Y-m-d');
+                } catch (\Exception $e) {
+                    $data[$dateKey] = $dateKey === 'issue_date' ? now()->format('Y-m-d') : null;
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    private function resolveBusinessEntity(array $supplier): ?BusinessEntity
+    {
+        if (empty($supplier)) {
+            return null;
+        }
+
+        $taxId = $this->normalizeTaxId($supplier['tax_id'] ?? null);
+        $name = trim($supplier['name'] ?? '') ?: 'Unknown';
+
+        $query = BusinessEntity::where('user_id', $this->attachment->user_id);
+        if ($taxId) {
+            $query->where('tax_id', $taxId);
+        } else {
+            $query->where('name', $name);
+        }
+
+        $existing = $query->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        return BusinessEntity::create([
+            'user_id' => $this->attachment->user_id,
+            'name' => $name,
+            'tax_id' => $taxId,
+            'tax_office' => $supplier['tax_office'] ?? null,
+            'email' => $supplier['email'] ?? null,
+            'country' => $supplier['country'] ?? null,
+            'city' => $supplier['city'] ?? null,
+            'address' => $supplier['address'] ?? null,
+            'postal_code' => $supplier['postal_code'] ?? null,
+            'phone' => $supplier['phone'] ?? null,
+            'mobile' => $supplier['mobile'] ?? null,
+            'type' => 'supplier',
+        ]);
+    }
+
+    private function normalizeTaxId(?string $value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', $value);
+        return $digits ?: null;
     }
 
     private function prepareFileForOpenAI(string $filePath, string $mimeType): array

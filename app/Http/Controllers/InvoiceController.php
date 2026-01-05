@@ -76,7 +76,7 @@ class InvoiceController extends Controller
             $query->where('total_gross', '<=', $filters['max_amount']);
         }
 
-        $summaryQuery = clone $query;
+        $summaryQuery = (clone $query)->where('status', '!=', 'draft');
         $summary = [
             'count' => (clone $summaryQuery)->count(),
             'gross' => (float) (clone $summaryQuery)->sum('total_gross'),

@@ -1,204 +1,63 @@
-# 📋 Invoice System
+# Invoice System (Laravel 11 + React)
 
-AI-powered invoice management system with intelligent extraction, analytics dashboard, and accountant reporting capabilities.
+AI-assisted invoice import with IMAP fetching, vision-powered extraction, and draft review before approval.
 
-![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?style=flat-square&logo=laravel)
-![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)
-![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=flat-square&logo=php)
-![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+## Key Features
+- IMAP import (Zoho tested): fetch unread emails, download attachments, create draft invoices.
+- Vision extraction (OpenAI gpt-4o): PDF/image to structured data (type, amounts, supplier, dates).
+- Business entities: auto-create/reuse supplier entities from extracted name/AFM.
+- Draft workflow: email imports land as `draft`; excluded from dashboard/summary metrics until approved.
+- Invoices UI: filter by status (draft/pending/paid), view attachment, edit/delete.
+- IMAP settings UI: per-user host/port/SSL/username/password, subject filter, connection test.
 
-## ✨ Features
-
-### 🤖 AI-Powered Invoice Extraction
-- **GPT-4V Integration**: Automatically extract invoice data from images/PDFs using OpenAI's vision model
-- **Multi-language Support**: Process invoices in multiple languages (English, Greek, etc.)
-- **Smart Data Parsing**: Extracts invoice number, dates, amounts, vendor info, and line items
-- **Duplicate Prevention**: Prevents duplicate invoice entries with smart detection
-
-### 📊 Analytics Dashboard
-- **Real-time Aggregates**: Total invoice count, income/expense summaries, net profit calculations
-- **Date Range Filtering**: Analyze invoices for any custom period
-- **Categorized Breakdown**: View income vs expense distributions
-- **Visual Charts**: Interactive charts for expense trends and category analysis
-
-### 👥 User Management
-- **Admin Control**: Dedicated admin panel for user and account management
-- **User Status Enforcement**: Inactive users automatically blocked from access
-- **Role-based Access**: Admin vs regular user roles with appropriate permissions
-- **Activity Tracking**: Monitor user actions and system events
-
-### 📧 Accountant Reporting
-- **Email Configuration**: Configure 1-3 accountant email recipients per user
-- **Automated Reports**: Generate and send monthly reports with invoice summaries
-- **ZIP Attachments**: Bundle all invoices in compressed format for easy distribution
-- **Mailgun Integration**: Reliable email delivery with Mailgun service
-- **Export Formats**: Export by date range, invoice type (income/expense), and more
-
-### 💼 Business Management
-- **Entity Management**: Create and manage business entities (customers, vendors)
-- **Duplicate Prevention**: Automatic detection of duplicate business entities
-- **Contact Information**: Store comprehensive contact details and notes
-- **Category Organization**: Organize invoices by custom categories
-
-### 🔐 Security & Validation
-- **Authentication**: Secure login with email verification
-- **Password Management**: Secure password reset and update functionality
-- **CSRF Protection**: Built-in Laravel CSRF token validation
-- **Data Validation**: Comprehensive server-side validation for all inputs
-
-## 🚀 Quick Start
-
-### Prerequisites
-- PHP 8.3+
+## Requirements
+- PHP 8.3+, Composer
 - Node.js 18+
-- Composer
-- SQLite or MySQL database
-- OpenAI API key
-- Mailgun account (optional, for email features)
+- SQLite (default) or MySQL
+- OpenAI API key (for extraction)
+- Optional: Poppler (`pdftoppm`) or Imagick for PDF->PNG conversion
 
-### Installation
-
-1. **Clone the repository**
-```bash
-git clone https://github.com/NickArm/Invoice-System.git
-cd Invoice-System
-```
-
-2. **Install PHP dependencies**
-```bash
-composer install
-```
-
-3. **Install JavaScript dependencies**
-```bash
-npm install
-```
-
-4. **Configure environment variables**
+## Setup
 ```bash
 cp .env.example .env
-```
-
-Edit `.env` and set:
-```env
-APP_KEY=base64:YourBase64EncodedKey
-DB_CONNECTION=sqlite
-# or for MySQL:
-DB_HOST=localhost
-DB_DATABASE=invoice_system
-DB_USERNAME=root
-DB_PASSWORD=password
-
-OPENAI_API_KEY=sk_your_openai_key
-MAILGUN_DOMAIN=your-mailgun-domain
-MAILGUN_SECRET=your-mailgun-secret
-```
-
-5. **Generate application key**
-```bash
+composer install
+npm install
 php artisan key:generate
-```
-
-6. **Run database migrations**
-```bash
 php artisan migrate
-```
-
-7. **Seed admin user (optional)**
-```bash
-php artisan db:seed --class=AdminUserSeeder
-```
-
-8. **Build frontend assets**
-```bash
 npm run build
-```
-
-For development with hot reload:
-```bash
-npm run dev
-```
-
-9. **Start the development server**
-```bash
 php artisan serve
 ```
 
-Visit `http://localhost:8000` in your browser.
+## Environment Notes
+- Set `OPENAI_API_KEY` in `.env`.
+- IMAP fields live on `users` table (host, port, username, password, ssl, subject_filter, subject_match_type, enabled).
+- Queue: jobs currently run sync; for async use a queue driver (database/redis) and `php artisan queue:work`.
 
-## 📖 Usage
+## Email Import
+- Command: `php artisan invoices:fetch-emails -v` (scheduled every 15 minutes via `routes/console.php`).
+- Saves attachments to `storage/app/invoices/draft/{user_id}/` on the `local` disk.
+- Creates `attachments` rows (status pending→extracted) and dispatches extraction job.
+- `ProcessInvoiceAttachment` normalizes data, defaults type to expense unless supplier AFM matches your company (then income), creates/links BusinessEntity, and inserts an invoice with `status=draft`.
 
-### Extracting Invoices
-1. Navigate to **Invoices → Extract**
-2. Upload invoice image/PDF
-3. System automatically extracts data using AI
-4. Review and confirm extracted information
-5. Invoice saved to database with full details
+## Draft Handling
+- Draft invoices are visible in the list (status filter includes Draft) but are **excluded** from:
+  - Dashboard aggregates and charts
+  - List summary counts/sums
+- Approval flow is not implemented yet (to-do: add approve/reject actions that flip `status` from draft to paid/pending and re-include in metrics).
 
-### Dashboard
-- View real-time invoice statistics
-- Filter by date range
-- See income vs expense breakdown
-- Export reports for accountants
-- Access quick business entity management
+## Frontend
+- Inertia + React + Tailwind.
+- Pages of interest: `resources/js/Pages/Invoices/Index.jsx` (filters, status badges, file view) and `resources/js/Pages/Settings/ImapSettings.jsx`.
 
-### Settings
-- **Accountant Emails**: Configure recipient email addresses (1-3 emails)
-- **Business Details**: Set company information
-- **Categories**: Create custom invoice categories
+## Troubleshooting
+- PDF conversion: if Imagick is missing, Poppler `pdftoppm` is attempted (configure binary paths in `ProcessInvoiceAttachment::findPdftoppm`).
+- CSRF: IMAP test uses Axios to include XSRF token automatically.
+- Drafts missing in metrics: intended; only non-draft counted.
 
-### Admin Panel
-- User management (create, edit, deactivate users)
-- View system activity logs
-- Monitor invoice processing
-- Manage business entities
-
-### Accountant Reports
-1. Go to **Dashboard**
-2. Select date range and invoice type
-3. Choose export format (all invoices as ZIP)
-4. Click "Send Report"
-5. Automatic email delivery to configured addresses
-
-## 🏗️ Architecture
-
-### Backend
-- **Framework**: Laravel 11
-- **Database**: SQLite/MySQL with Eloquent ORM
-- **Job Queue**: Database-backed queue for async processing
-- **API**: RESTful API endpoints for frontend communication
-
-### Frontend
-- **Framework**: React 18 with Vite
-- **State Management**: React Hooks with Inertia.js
-- **Styling**: Tailwind CSS
-- **Form Handling**: Inertia form helpers with validation feedback
-
-### External Services
-- **OpenAI**: Invoice data extraction via GPT-4V
-- **Mailgun**: Transactional email delivery
-
-## 🗂️ Project Structure
-
-```
-├── app/
-│   ├── Http/
-│   │   ├── Controllers/        # Application controllers
-│   │   ├── Middleware/         # Custom middleware
-│   │   └── Requests/           # Form validation
-│   ├── Models/                 # Eloquent models
-│   ├── Jobs/                   # Queue jobs
-│   ├── Mail/                   # Mailable classes
-│   └── Providers/              # Service providers
-├── routes/
-│   ├── web.php                 # Web routes
-│   └── auth.php                # Auth routes
-├── database/
-│   ├── migrations/             # Database migrations
-│   └── seeders/                # Database seeders
-├── resources/
-│   ├── js/                     # React components
-│   ├── views/                  # Blade templates
+## To-Do
+- Add approve/reject actions for drafts in UI and API.
+- Optional: mark IMAP messages as seen after successful processing.
+- Optional: tighten duplicate detection and add unit tests for extraction mapping.
 │   ├── css/                    # Stylesheets
 │   └── emails/                 # Email templates
 ├── config/                     # Application configuration

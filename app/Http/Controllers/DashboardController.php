@@ -20,7 +20,8 @@ class DashboardController extends Controller
         $startLast12 = $now->copy()->subMonths(11)->startOfMonth();
 
         $userInvoices = Invoice::where('user_id', $userId)
-            ->whereNotNull('issue_date');
+            ->whereNotNull('issue_date')
+            ->where('status', '!=', 'draft');
 
         $periodQuery = clone $userInvoices;
 

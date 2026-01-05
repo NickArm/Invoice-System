@@ -43,6 +43,10 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/accountant-emails', [SettingsController::class, 'accountantEmails'])->name('accountant-emails');
         Route::post('/accountant-emails', [SettingsController::class, 'updateAccountantEmails'])->name('accountant-emails.update');
 
+        Route::get('/imap', [SettingsController::class, 'imapSettings'])->name('imap');
+        Route::post('/imap', [SettingsController::class, 'updateImapSettings'])->name('imap.update');
+        Route::post('/imap/test', [SettingsController::class, 'testImapConnection'])->name('imap.test');
+
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
         Route::patch('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
