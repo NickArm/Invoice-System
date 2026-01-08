@@ -43,7 +43,7 @@ export default function Welcome({ auth }) {
 
     return (
         <>
-            <Head title="Welcome - Invoice System" />
+            <Head title="Welcome to Invaice" />
             <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 flex items-center justify-center px-4 sm:px-6 lg:px-8">
                 <div className="w-full max-w-md">
                     {/* Logo & Title */}
@@ -53,8 +53,8 @@ export default function Welcome({ auth }) {
                                 <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                             </svg>
                         </div>
-                        <h1 className="text-3xl font-bold text-white mb-2">Invoice System</h1>
-                        <p className="text-slate-400">Manage invoices with ease</p>
+                        <h1 className="text-3xl font-bold text-white mb-2">Invaice</h1>
+                        <p className="text-slate-400">Smart invoice intelligence</p>
                     </div>
 
                     {/* Auth Card */}
@@ -245,7 +245,7 @@ export default function Welcome({ auth }) {
 
                     {/* Footer */}
                     <div className="mt-8 text-center text-sm text-slate-400">
-                        <p>Invoice System © 2026</p>
+                        <p>Invaice by Nick Armenis © 2026</p>
                     </div>
                 </div>
             </div>
