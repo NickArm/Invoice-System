@@ -1,5 +1,8 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
+    "name": "invaice",
+    "description": "Smart invoice intelligence",
+    "version": "1.0.0",
     "private": true,
     "type": "module",
     "scripts": {

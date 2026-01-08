@@ -1,4 +1,6 @@
-# Invoice System (Laravel 11 + React)
+# Invaice
+
+**Smart invoice intelligence**
 
 AI-assisted invoice import with IMAP fetching, vision-powered extraction, and draft review before approval.
 

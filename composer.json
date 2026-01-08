@@ -1,9 +1,9 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "invaice/invaice",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "Invaice - Smart invoice intelligence",
+    "keywords": ["invoice", "ai", "imap", "laravel"],
     "license": "MIT",
     "require": {
         "php": "^8.2",

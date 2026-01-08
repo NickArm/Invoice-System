@@ -1,4 +1,6 @@
-# Deployment Guide - Invoice System
+# Deployment Guide - Invaice
+
+**Smart invoice intelligence**
 
 ## cPanel Server Setup
 
