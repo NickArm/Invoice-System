@@ -35,7 +35,7 @@ export default function Edit({ user }) {
                                         type="text"
                                         value={data.name}
                                         onChange={(e) => setData('name', e.target.value)}
-                                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors ${errors.name ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors ${errors.name ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                                         placeholder="John Doe"
                                     />
                                     {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
@@ -48,7 +48,7 @@ export default function Edit({ user }) {
                                         type="email"
                                         value={data.email}
                                         onChange={(e) => setData('email', e.target.value)}
-                                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors ${errors.email ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors ${errors.email ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                                         placeholder="john@example.com"
                                     />
                                     {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
@@ -60,7 +60,7 @@ export default function Edit({ user }) {
                                         id="role"
                                         value={data.role}
                                         onChange={(e) => setData('role', e.target.value)}
-                                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors ${errors.role ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors ${errors.role ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                                     >
                                         <option value="user">User</option>
                                         <option value="admin">Admin</option>
@@ -77,7 +77,7 @@ export default function Edit({ user }) {
                                                 type="checkbox"
                                                 checked={data.is_active}
                                                 onChange={(e) => setData('is_active', e.target.checked)}
-                                                className="w-4 h-4 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                                                className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600"
                                             />
                                             <span className="text-sm">Active</span>
                                         </label>
@@ -105,7 +105,7 @@ export default function Edit({ user }) {
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {processing ? 'Updating...' : 'Update User'}
                                     </button>

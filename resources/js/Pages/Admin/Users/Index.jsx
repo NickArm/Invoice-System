@@ -36,7 +36,7 @@ export default function Index({ users, flash }) {
                                 <h3 className="text-lg font-semibold">Users</h3>
                                 <Link
                                     href={route('admin.users.create')}
-                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                                    className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
                                 >
                                     + New User
                                 </Link>
@@ -97,7 +97,7 @@ export default function Index({ users, flash }) {
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                                         <Link
                                                             href={route('admin.users.edit', user.id)}
-                                                            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300"
+                                                            className="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300"
                                                         >
                                                             Edit
                                                         </Link>

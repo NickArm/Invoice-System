@@ -44,11 +44,11 @@ export default function Welcome({ auth }) {
     return (
         <>
             <Head title="Welcome to Invaice" />
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-primary-900 to-slate-900 flex items-center justify-center px-4 sm:px-6 lg:px-8">
                 <div className="w-full max-w-md">
                     {/* Logo & Title */}
                     <div className="text-center mb-8">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 shadow-lg mx-auto mb-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-primary-600 shadow-lg mx-auto mb-4">
                             <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                             </svg>
@@ -69,7 +69,7 @@ export default function Welcome({ auth }) {
                                 }}
                                 className={`flex-1 px-4 py-4 text-sm font-semibold transition ${
                                     mode === 'login'
-                                        ? 'bg-indigo-600 text-white'
+                                        ? 'bg-primary-600 text-white'
                                         : 'text-slate-400 hover:text-slate-300'
                                 }`}
                             >
@@ -84,7 +84,7 @@ export default function Welcome({ auth }) {
                                 }}
                                 className={`flex-1 px-4 py-4 text-sm font-semibold transition ${
                                     mode === 'register'
-                                        ? 'bg-indigo-600 text-white'
+                                        ? 'bg-primary-600 text-white'
                                         : 'text-slate-400 hover:text-slate-300'
                                 }`}
                             >
@@ -102,7 +102,7 @@ export default function Welcome({ auth }) {
                                             type="email"
                                             name="email"
                                             value={loginForm.data.email}
-                                            className="mt-2 block w-full rounded-lg border-slate-600 bg-slate-700/50 text-white placeholder-slate-400 focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-2 block w-full rounded-lg border-slate-600 bg-slate-700/50 text-white placeholder-slate-400 focus:border-primary-500 focus:ring-primary-500"
                                             placeholder="your@email.com"
                                             isFocused={true}
                                             onChange={(e) => loginForm.setData('email', e.target.value)}
@@ -118,7 +118,7 @@ export default function Welcome({ auth }) {
                                             type="password"
                                             name="password"
                                             value={loginForm.data.password}
-                                            className="mt-2 block w-full rounded-lg border-slate-600 bg-slate-700/50 text-white placeholder-slate-400 focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-2 block w-full rounded-lg border-slate-600 bg-slate-700/50 text-white placeholder-slate-400 focus:border-primary-500 focus:ring-primary-500"
                                             placeholder="••••••••"
                                             onChange={(e) => loginForm.setData('password', e.target.value)}
                                             required
@@ -132,7 +132,7 @@ export default function Welcome({ auth }) {
                                             type="checkbox"
                                             checked={loginForm.data.remember}
                                             onChange={(e) => loginForm.setData('remember', e.target.checked)}
-                                            className="rounded border-slate-600 bg-slate-700 text-indigo-600"
+                                            className="rounded border-slate-600 bg-slate-700 text-primary-600"
                                         />
                                         <label htmlFor="remember" className="ml-3 text-sm text-slate-300">
                                             Remember me
@@ -142,7 +142,7 @@ export default function Welcome({ auth }) {
                                     <button
                                         type="submit"
                                         disabled={loginForm.processing}
-                                        className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-700 disabled:opacity-50"
+                                        className="w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-primary-700 disabled:opacity-50"
                                     >
                                         {loginForm.processing ? 'Logging in...' : 'Log In'}
                                     </button>
@@ -150,7 +150,7 @@ export default function Welcome({ auth }) {
                                     <div className="text-end">
                                         <Link
                                             href={route('password.request')}
-                                            className="text-sm text-indigo-400 hover:text-indigo-300 underline transition"
+                                            className="text-sm text-primary-400 hover:text-primary-300 underline transition"
                                         >
                                             Forgot your password?
                                         </Link>
@@ -171,7 +171,7 @@ export default function Welcome({ auth }) {
                                             type="text"
                                             name="name"
                                             value={registerForm.data.name}
-                                            className="mt-2 block w-full rounded-lg border-slate-600 bg-slate-700/50 text-white placeholder-slate-400 focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-2 block w-full rounded-lg border-slate-600 bg-slate-700/50 text-white placeholder-slate-400 focus:border-primary-500 focus:ring-primary-500"
                                             placeholder="John Doe"
                                             isFocused={true}
                                             onChange={(e) => registerForm.setData('name', e.target.value)}
@@ -187,7 +187,7 @@ export default function Welcome({ auth }) {
                                             type="email"
                                             name="email"
                                             value={registerForm.data.email}
-                                            className="mt-2 block w-full rounded-lg border-slate-600 bg-slate-700/50 text-white placeholder-slate-400 focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-2 block w-full rounded-lg border-slate-600 bg-slate-700/50 text-white placeholder-slate-400 focus:border-primary-500 focus:ring-primary-500"
                                             placeholder="your@email.com"
                                             onChange={(e) => registerForm.setData('email', e.target.value)}
                                             required
@@ -202,7 +202,7 @@ export default function Welcome({ auth }) {
                                             type="password"
                                             name="password"
                                             value={registerForm.data.password}
-                                            className="mt-2 block w-full rounded-lg border-slate-600 bg-slate-700/50 text-white placeholder-slate-400 focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-2 block w-full rounded-lg border-slate-600 bg-slate-700/50 text-white placeholder-slate-400 focus:border-primary-500 focus:ring-primary-500"
                                             placeholder="••••••••"
                                             onChange={(e) => registerForm.setData('password', e.target.value)}
                                             required
@@ -217,7 +217,7 @@ export default function Welcome({ auth }) {
                                             type="password"
                                             name="password_confirmation"
                                             value={registerForm.data.password_confirmation}
-                                            className="mt-2 block w-full rounded-lg border-slate-600 bg-slate-700/50 text-white placeholder-slate-400 focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-2 block w-full rounded-lg border-slate-600 bg-slate-700/50 text-white placeholder-slate-400 focus:border-primary-500 focus:ring-primary-500"
                                             placeholder="••••••••"
                                             onChange={(e) => registerForm.setData('password_confirmation', e.target.value)}
                                             required
@@ -228,7 +228,7 @@ export default function Welcome({ auth }) {
                                     <button
                                         type="submit"
                                         disabled={registerForm.processing}
-                                        className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-700 disabled:opacity-50"
+                                        className="w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-primary-700 disabled:opacity-50"
                                     >
                                         {registerForm.processing ? 'Creating account...' : 'Register'}
                                     </button>
