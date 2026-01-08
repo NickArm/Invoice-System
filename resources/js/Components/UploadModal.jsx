@@ -135,7 +135,7 @@ export default function UploadModal({ isOpen, onClose }) {
                                     <div
                                         className={`relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 ${
                                             dragActive
-                                                ? 'border-indigo-500 bg-indigo-50'
+                                                ? 'border-primary-500 bg-primary-50'
                                                 : 'border-gray-300 bg-gray-50'
                                         }`}
                                         onDragEnter={handleDrag}
@@ -196,7 +196,7 @@ export default function UploadModal({ isOpen, onClose }) {
                                     </button>
                                     <button
                                         type="button"
-                                        className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                                        className="inline-flex justify-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
                                         onClick={handleUpload}
                                         disabled={files.length === 0 || uploading}
                                     >

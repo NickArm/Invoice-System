@@ -89,14 +89,14 @@ export default function Dashboard({ metrics, chartData = [], latestInvoices = []
                             <button
                                 type="button"
                                 onClick={() => handleTabChange('overview')}
-                                className={`rounded-full px-3 py-1 text-xs font-semibold ${tab === 'overview' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:text-indigo-600 dark:text-gray-300'}`}
+                                className={`rounded-full px-3 py-1 text-xs font-semibold ${tab === 'overview' ? 'bg-primary-600 text-white' : 'text-gray-700 hover:text-primary-600 dark:text-gray-300'}`}
                             >
                                 Overview
                             </button>
                             <button
                                 type="button"
                                 onClick={() => handleTabChange('analytics')}
-                                className={`rounded-full px-3 py-1 text-xs font-semibold ${tab === 'analytics' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:text-indigo-600 dark:text-gray-300'}`}
+                                className={`rounded-full px-3 py-1 text-xs font-semibold ${tab === 'analytics' ? 'bg-primary-600 text-white' : 'text-gray-700 hover:text-primary-600 dark:text-gray-300'}`}
                             >
                                 Analytics
                             </button>
@@ -107,7 +107,7 @@ export default function Dashboard({ metrics, chartData = [], latestInvoices = []
                         <select
                             value={period}
                             onChange={(e) => handlePeriodChange(e.target.value)}
-                            className="rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm focus:border-indigo-300 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+                            className="rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm focus:border-primary-300 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
                         >
                             {periodOptions.map((opt) => (
                                 <option key={opt.value} value={opt.value}>
@@ -148,7 +148,7 @@ export default function Dashboard({ metrics, chartData = [], latestInvoices = []
                                         type="date"
                                         value={sendForm.data.date_from}
                                         onChange={(e) => sendForm.setData('date_from', e.target.value)}
-                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                     />
                                     {sendForm.errors.date_from && <p className="text-xs text-red-600">{sendForm.errors.date_from}</p>}
                                 </div>
@@ -159,7 +159,7 @@ export default function Dashboard({ metrics, chartData = [], latestInvoices = []
                                         type="date"
                                         value={sendForm.data.date_to}
                                         onChange={(e) => sendForm.setData('date_to', e.target.value)}
-                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                     />
                                     {sendForm.errors.date_to && <p className="text-xs text-red-600">{sendForm.errors.date_to}</p>}
                                 </div>
@@ -169,7 +169,7 @@ export default function Dashboard({ metrics, chartData = [], latestInvoices = []
                                     <select
                                         value={sendForm.data.type}
                                         onChange={(e) => sendForm.setData('type', e.target.value)}
-                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                     >
                                         <option value="all">All</option>
                                         <option value="income">Income</option>
@@ -187,7 +187,7 @@ export default function Dashboard({ metrics, chartData = [], latestInvoices = []
                                         {accountantEmails.map((email) => (
                                             <span
                                                 key={email}
-                                                className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 font-semibold text-indigo-700"
+                                                className="rounded-full border border-primary-200 bg-primary-50 px-3 py-1 font-semibold text-primary-700"
                                             >
                                                 {email}
                                             </span>
@@ -201,7 +201,7 @@ export default function Dashboard({ metrics, chartData = [], latestInvoices = []
                                         <button
                                             type="submit"
                                             disabled={accountantEmails.length === 0 || sendForm.processing}
-                                            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:bg-gray-400"
+                                            className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:bg-gray-400"
                                         >
                                             {sendForm.processing ? 'Sending...' : 'Send to accountant'}
                                         </button>
@@ -214,7 +214,7 @@ export default function Dashboard({ metrics, chartData = [], latestInvoices = []
                             {summaryCards.map((card) => (
                                 <div
                                     key={card.title}
-                                    className="rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm backdrop-blur-sm transition hover:border-indigo-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/80 dark:hover:border-indigo-700"
+                                    className="rounded-xl border border-gray-200 bg-white/70 p-4 shadow-sm backdrop-blur-sm transition hover:border-primary-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900/80 dark:hover:border-primary-700"
                                 >
                                     <div className="flex items-start justify-between text-sm text-gray-500 dark:text-gray-400">
                                         <span>{card.title}</span>
@@ -240,7 +240,7 @@ export default function Dashboard({ metrics, chartData = [], latestInvoices = []
                                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Financial Insights</h3>
                                     <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                                         <div className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                                            <span className="h-2 w-2 rounded-full bg-indigo-500" /> Income
+                                            <span className="h-2 w-2 rounded-full bg-primary-500" /> Income
                                             <span className="h-2 w-2 rounded-full bg-emerald-500" /> Expenses
                                             <span className="h-2 w-2 rounded-full bg-amber-500" /> Profit
                                         </div>

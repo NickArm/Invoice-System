@@ -59,13 +59,13 @@ export default function InvoiceCategories({ categories = [] }) {
                     type="button"
                     onClick={() => onSelect(color)}
                     className={`h-8 w-8 rounded-full border transition ${
-                        selected === color ? 'ring-2 ring-offset-2 ring-indigo-500' : 'border-slate-200'
+                        selected === color ? 'ring-2 ring-offset-2 ring-primary-500' : 'border-slate-200'
                     }`}
                     style={{ backgroundColor: color }}
                     aria-label={`Choose ${color}`}
                 />
             ))}
-            <label className="flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-indigo-200">
+            <label className="flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-primary-200">
                 Custom
                 <input
                     type="color"
@@ -96,7 +96,7 @@ export default function InvoiceCategories({ categories = [] }) {
                                     value={createForm.data.name}
                                     onChange={(e) => createForm.setData('name', e.target.value)}
                                     placeholder="e.g. Marketing, Office"
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                 />
                                 {createForm.errors.name && (
                                     <p className="text-sm text-red-600">{createForm.errors.name}</p>
@@ -113,7 +113,7 @@ export default function InvoiceCategories({ categories = [] }) {
                                 <button
                                     type="submit"
                                     disabled={createForm.processing}
-                                    className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50"
+                                    className="rounded-full bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:opacity-50"
                                 >
                                     Add category
                                 </button>
@@ -157,21 +157,21 @@ export default function InvoiceCategories({ categories = [] }) {
                                                             type="text"
                                                             value={editForm.data.name}
                                                             onChange={(e) => editForm.setData('name', e.target.value)}
-                                                            className="w-56 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                                            className="w-56 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                                         />
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <button
                                                             type="button"
                                                             onClick={cancelEdit}
-                                                            className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-indigo-200 hover:text-indigo-700"
+                                                            className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-primary-200 hover:text-primary-700"
                                                         >
                                                             Cancel
                                                         </button>
                                                         <button
                                                             type="submit"
                                                             disabled={editForm.processing}
-                                                            className="rounded-full bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50"
+                                                            className="rounded-full bg-primary-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:opacity-50"
                                                         >
                                                             Save
                                                         </button>
@@ -202,7 +202,7 @@ export default function InvoiceCategories({ categories = [] }) {
                                                     <button
                                                         type="button"
                                                         onClick={() => startEdit(category)}
-                                                        className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-indigo-200 hover:text-indigo-700"
+                                                        className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-primary-200 hover:text-primary-700"
                                                     >
                                                         Edit
                                                     </button>

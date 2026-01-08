@@ -82,14 +82,14 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                         </div>
                         <Link
                             href={route('invoices.create')}
-                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-700"
+                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-primary-200 hover:text-primary-700"
                         >
                             New Invoice
                         </Link>
                         <button
                             type="button"
                             onClick={() => setShowUploadModal(true)}
-                            className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                            className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700"
                         >
                             <span className="text-lg leading-none">＋</span>
                             Upload / Add
@@ -103,14 +103,14 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                             <button
                                 type="button"
                                 onClick={() => setTab('income')}
-                                className={`rounded-full px-3 py-1 text-sm font-semibold ${localFilters.type === 'income' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-indigo-700'}`}
+                                className={`rounded-full px-3 py-1 text-sm font-semibold ${localFilters.type === 'income' ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-600 hover:text-primary-700'}`}
                             >
                                 Income
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setTab('expense')}
-                                className={`rounded-full px-3 py-1 text-sm font-semibold ${localFilters.type === 'expense' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:text-indigo-700'}`}
+                                className={`rounded-full px-3 py-1 text-sm font-semibold ${localFilters.type === 'expense' ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-600 hover:text-primary-700'}`}
                             >
                                 Expenses
                             </button>
@@ -122,20 +122,20 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                             onChange={(e) => setLocalFilters({ ...localFilters, search: e.target.value })}
                             onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
                             placeholder="Search invoices, company or number"
-                            className="w-full max-w-md rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-indigo-300 focus:outline-none"
+                            className="w-full max-w-md rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-primary-300 focus:outline-none"
                         />
 
                         <button
                             type="button"
                             onClick={applyFilters}
-                            className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                            className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700"
                         >
                             Apply
                         </button>
                         <button
                             type="button"
                             onClick={clearFilters}
-                            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-indigo-200 hover:text-indigo-700"
+                            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-primary-200 hover:text-primary-700"
                         >
                             Reset
                         </button>
@@ -145,7 +145,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                         <select
                             value={localFilters.status}
                             onChange={(e) => setLocalFilters({ ...localFilters, status: e.target.value })}
-                            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-indigo-300 focus:outline-none"
+                            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-primary-300 focus:outline-none"
                         >
                             <option value="">All statuses</option>
                             <option value="draft">Draft</option>
@@ -156,7 +156,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                         <select
                             value={localFilters.entity_id}
                             onChange={(e) => setLocalFilters({ ...localFilters, entity_id: e.target.value })}
-                            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-indigo-300 focus:outline-none"
+                            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-primary-300 focus:outline-none"
                         >
                             <option value="">Select company</option>
                             {entities.map((entity) => (
@@ -169,7 +169,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                         <select
                             value={localFilters.category_id}
                             onChange={(e) => setLocalFilters({ ...localFilters, category_id: e.target.value })}
-                            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-indigo-300 focus:outline-none"
+                            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-primary-300 focus:outline-none"
                         >
                             <option value="">All categories</option>
                             {categories.map((cat) => (
@@ -231,7 +231,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                         <button
                             type="button"
                             onClick={() => setShowUploadModal(true)}
-                            className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                            className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700"
                         >
                             Upload & Extract
                         </button>
@@ -285,7 +285,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                                                     {invoice.status || 'pending'}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-3 text-sm text-indigo-600">
+                                            <td className="px-4 py-3 text-sm text-primary-600">
                                                 {invoice.attachment_url ? (
                                                     <a href={invoice.attachment_url} target="_blank" rel="noreferrer" className="font-semibold hover:underline">
                                                         View File
@@ -298,7 +298,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                                                 <div className="flex items-center gap-2">
                                                     <Link
                                                         href={route('invoices.edit', invoice.id)}
-                                                        className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-indigo-200 hover:text-indigo-700"
+                                                        className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-primary-200 hover:text-primary-700"
                                                     >
                                                         Edit
                                                     </Link>
@@ -327,7 +327,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                                         key={idx}
                                         disabled={!link.url}
                                         onClick={() => link.url && router.get(link.url, {}, { preserveState: true })}
-                                        className={`rounded-full px-3 py-1 text-xs font-semibold ${link.active ? 'bg-indigo-600 text-white' : 'border border-slate-200 text-slate-700 hover:border-indigo-200 hover:text-indigo-700'}`}
+                                        className={`rounded-full px-3 py-1 text-xs font-semibold ${link.active ? 'bg-primary-600 text-white' : 'border border-slate-200 text-slate-700 hover:border-primary-200 hover:text-primary-700'}`}
                                     >
                                         {link.label.replace('&raquo;', '›').replace('&laquo;', '‹')}
                                     </button>

@@ -113,7 +113,7 @@ export default function Extract({ attachment, categories, queue, errors: serverE
                             {loading ? (
                                 <div className="flex items-center justify-center h-64">
                                     <div className="text-center">
-                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
                                         <p className="mt-4 text-gray-600">AI is extracting data from your invoice...</p>
                                     </div>
                                 </div>
@@ -151,7 +151,7 @@ export default function Extract({ attachment, categories, queue, errors: serverE
                                             type="text"
                                             value={formData.supplier_name}
                                             onChange={(e) => handleChange('supplier_name', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         />
                                     </div>
 
@@ -163,7 +163,7 @@ export default function Extract({ attachment, categories, queue, errors: serverE
                                             type="text"
                                             value={formData.supplier_tax_id}
                                             onChange={(e) => handleChange('supplier_tax_id', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         />
                                     </div>
 
@@ -174,7 +174,7 @@ export default function Extract({ attachment, categories, queue, errors: serverE
                                             type="text"
                                             value={formData.invoice_number}
                                             onChange={(e) => handleChange('invoice_number', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         />
                                         {serverErrors?.invoice_number && (
                                             <p className="mt-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
@@ -191,7 +191,7 @@ export default function Extract({ attachment, categories, queue, errors: serverE
                                             step="0.01"
                                             value={formData.total_gross}
                                             onChange={(e) => handleChange('total_gross', parseFloat(e.target.value))}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         />
                                     </div>
 
@@ -203,7 +203,7 @@ export default function Extract({ attachment, categories, queue, errors: serverE
                                             step="0.01"
                                             value={formData.vat_percent}
                                             onChange={(e) => handleChange('vat_percent', parseFloat(e.target.value))}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         />
                                     </div>
 
@@ -213,7 +213,7 @@ export default function Extract({ attachment, categories, queue, errors: serverE
                                         <select
                                             value={formData.currency}
                                             onChange={(e) => handleChange('currency', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         >
                                             <option value="EUR">EUR (€)</option>
                                             <option value="USD">USD ($)</option>
@@ -250,7 +250,7 @@ export default function Extract({ attachment, categories, queue, errors: serverE
                                         <select
                                             value={formData.category_id}
                                             onChange={(e) => handleChange('category_id', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         >
                                             <option value="">No category</option>
                                             {categories?.map((cat) => (
@@ -268,7 +268,7 @@ export default function Extract({ attachment, categories, queue, errors: serverE
                                             value={formData.description}
                                             onChange={(e) => handleChange('description', e.target.value)}
                                             rows={3}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         />
                                     </div>
 
@@ -279,7 +279,7 @@ export default function Extract({ attachment, categories, queue, errors: serverE
                                             type="date"
                                             value={formData.issue_date}
                                             onChange={(e) => handleChange('issue_date', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         />
                                     </div>
 
@@ -293,7 +293,7 @@ export default function Extract({ attachment, categories, queue, errors: serverE
                                         </button>
                                         <button
                                             type="submit"
-                                            className="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700"
+                                            className="px-4 py-2 bg-primary-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-primary-700"
                                         >
                                             Create Invoice
                                         </button>

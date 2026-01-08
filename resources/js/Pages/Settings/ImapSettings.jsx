@@ -92,7 +92,7 @@ export default function ImapSettings({ auth, settings }) {
                                         type="checkbox"
                                         checked={data.imap_enabled}
                                         onChange={(e) => setData('imap_enabled', e.target.checked)}
-                                        className="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                        className="rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-500"
                                     />
                                     <label htmlFor="imap_enabled" className="ml-2 block text-sm text-gray-900">
                                         Enable automatic email fetching
@@ -136,7 +136,7 @@ export default function ImapSettings({ auth, settings }) {
                                             type="checkbox"
                                             checked={data.imap_ssl}
                                             onChange={(e) => setData('imap_ssl', e.target.checked)}
-                                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                            className="rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-500"
                                         />
                                         <label htmlFor="imap_ssl" className="ml-2 block text-sm text-gray-900">
                                             Use SSL/TLS
@@ -204,7 +204,7 @@ export default function ImapSettings({ auth, settings }) {
                                                     value="contains"
                                                     checked={data.imap_subject_match_type === 'contains'}
                                                     onChange={(e) => setData('imap_subject_match_type', e.target.value)}
-                                                    className="text-indigo-600 focus:ring-indigo-500"
+                                                    className="text-primary-600 focus:ring-primary-500"
                                                 />
                                                 <span className="ml-2 text-sm text-gray-700">
                                                     Contains - Subject contains the filter text (e.g., "Invoice #123" matches "Invoice")
@@ -216,7 +216,7 @@ export default function ImapSettings({ auth, settings }) {
                                                     value="exact"
                                                     checked={data.imap_subject_match_type === 'exact'}
                                                     onChange={(e) => setData('imap_subject_match_type', e.target.value)}
-                                                    className="text-indigo-600 focus:ring-indigo-500"
+                                                    className="text-primary-600 focus:ring-primary-500"
                                                 />
                                                 <span className="ml-2 text-sm text-gray-700">
                                                     Exact Match - Subject must exactly match the filter text

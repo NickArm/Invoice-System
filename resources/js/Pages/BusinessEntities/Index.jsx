@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 
 export default function Index({ entities, filters }) {
     const badgeClass = (type) => {
-        if (type === 'Supplier') return 'bg-indigo-50 text-indigo-700 border border-indigo-100';
+        if (type === 'Supplier') return 'bg-primary-50 text-primary-700 border border-primary-100';
         return 'bg-emerald-50 text-emerald-700 border border-emerald-100';
     };
 
@@ -31,7 +31,7 @@ export default function Index({ entities, filters }) {
                         </div>
                         <Link
                             href={route('business-entities.create')}
-                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-700"
+                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-primary-200 hover:text-primary-700"
                         >
                             New Entity
                         </Link>
@@ -72,7 +72,7 @@ export default function Index({ entities, filters }) {
                                     <div className="flex flex-1 items-center justify-end">
                                         <Link
                                             href={route('business-entities.edit', entity.id)}
-                                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-200 hover:text-indigo-700"
+                                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary-200 hover:text-primary-700"
                                         >
                                             Edit
                                         </Link>
@@ -98,8 +98,8 @@ export default function Index({ entities, filters }) {
                                 href={link.url || '#'}
                                 className={`min-w-[36px] rounded-full px-3 py-1 text-sm font-semibold ${
                                     link.active
-                                        ? 'bg-indigo-600 text-white shadow-sm'
-                                        : 'bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 hover:text-indigo-700'
+                                        ? 'bg-primary-600 text-white shadow-sm'
+                                        : 'bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 hover:text-primary-700'
                                 } ${!link.url ? 'cursor-not-allowed opacity-50' : ''}`}
                                 dangerouslySetInnerHTML={{ __html: link.label }}
                             />

@@ -15,7 +15,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-8">
                         <Link href="/" className="flex items-center gap-2">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 shadow-sm">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary-50 text-primary-600 shadow-sm">
                                 <ApplicationLogo className="h-6 w-6 fill-current" />
                             </div>
                         </Link>
@@ -37,8 +37,8 @@ export default function AuthenticatedLayout({ header, children }) {
                         <div className="relative">
                             <Dropdown>
                                 <Dropdown.Trigger>
-                                    <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-700">
-                                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+                                    <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-primary-200 hover:text-primary-700">
+                                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-50 text-primary-600">
                                             {user.name?.charAt(0) ?? '?'}
                                         </span>
                                         <span>{user.name}</span>

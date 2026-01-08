@@ -34,7 +34,7 @@ export default function Edit({ entity }) {
                         </div>
                         <Link
                             href={route('business-entities.index')}
-                            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-indigo-200 hover:text-indigo-700"
+                            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-primary-200 hover:text-primary-700"
                         >
                             Back
                         </Link>
@@ -48,7 +48,7 @@ export default function Edit({ entity }) {
                                     type="text"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                 />
                                 {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
                             </div>
@@ -71,7 +71,7 @@ export default function Edit({ entity }) {
                                         onClick={() => setData('type', 'supplier')}
                                         className={`flex-1 rounded-full border px-4 py-2 text-sm font-semibold transition ${
                                             data.type === 'supplier'
-                                                ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+                                                ? 'border-primary-200 bg-primary-50 text-primary-700'
                                                 : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
                                         }`}
                                     >
@@ -89,7 +89,7 @@ export default function Edit({ entity }) {
                                     type="text"
                                     value={data.tax_id}
                                     onChange={(e) => setData('tax_id', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                 />
                                 {errors.tax_id && <p className="text-sm text-red-600">{errors.tax_id}</p>}
                             </div>
@@ -99,7 +99,7 @@ export default function Edit({ entity }) {
                                     type="text"
                                     value={data.tax_office}
                                     onChange={(e) => setData('tax_office', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                 />
                                 {errors.tax_office && <p className="text-sm text-red-600">{errors.tax_office}</p>}
                             </div>
@@ -109,7 +109,7 @@ export default function Edit({ entity }) {
                                     type="email"
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                 />
                                 {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
                             </div>
@@ -122,7 +122,7 @@ export default function Edit({ entity }) {
                                     type="text"
                                     value={data.country}
                                     onChange={(e) => setData('country', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                 />
                                 {errors.country && <p className="text-sm text-red-600">{errors.country}</p>}
                             </div>
@@ -132,7 +132,7 @@ export default function Edit({ entity }) {
                                     type="text"
                                     value={data.city}
                                     onChange={(e) => setData('city', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                 />
                                 {errors.city && <p className="text-sm text-red-600">{errors.city}</p>}
                             </div>
@@ -145,7 +145,7 @@ export default function Edit({ entity }) {
                                     type="text"
                                     value={data.address}
                                     onChange={(e) => setData('address', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                 />
                                 {errors.address && <p className="text-sm text-red-600">{errors.address}</p>}
                             </div>
@@ -155,7 +155,7 @@ export default function Edit({ entity }) {
                                     type="text"
                                     value={data.postal_code}
                                     onChange={(e) => setData('postal_code', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                 />
                                 {errors.postal_code && <p className="text-sm text-red-600">{errors.postal_code}</p>}
                             </div>
@@ -168,7 +168,7 @@ export default function Edit({ entity }) {
                                     type="text"
                                     value={data.phone}
                                     onChange={(e) => setData('phone', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                 />
                                 {errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
                             </div>
@@ -178,7 +178,7 @@ export default function Edit({ entity }) {
                                     type="text"
                                     value={data.mobile}
                                     onChange={(e) => setData('mobile', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-indigo-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
                                 />
                                 {errors.mobile && <p className="text-sm text-red-600">{errors.mobile}</p>}
                             </div>
@@ -187,14 +187,14 @@ export default function Edit({ entity }) {
                         <div className="flex items-center justify-end gap-3">
                             <Link
                                 href={route('business-entities.index')}
-                                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-indigo-200 hover:text-indigo-700"
+                                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-primary-200 hover:text-primary-700"
                             >
                                 Cancel
                             </Link>
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50"
+                                className="rounded-full bg-primary-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:opacity-50"
                             >
                                 Update Entity
                             </button>

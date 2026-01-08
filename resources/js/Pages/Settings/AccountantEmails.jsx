@@ -47,7 +47,7 @@ export default function AccountantEmails({ emails = '', message = '' }) {
                                         value={data.emails}
                                         onChange={(e) => setData('emails', e.target.value)}
                                         placeholder="Separate emails with semicolon (;)&#10;Example: info@example.com;nikos@example.com;maria@example.com"
-                                        className={`w-full rounded-xl border px-3 py-2 text-sm focus:border-indigo-300 focus:ring-indigo-300 font-mono ${
+                                        className={`w-full rounded-xl border px-3 py-2 text-sm focus:border-primary-300 focus:ring-primary-300 font-mono ${
                                             errors.emails ? 'border-red-400' : 'border-slate-200'
                                         }`}
                                         rows={3}
@@ -67,7 +67,7 @@ export default function AccountantEmails({ emails = '', message = '' }) {
                                         value={data.message}
                                         onChange={(e) => setData('message', e.target.value)}
                                         placeholder="Write an optional message that will appear in the email before the statistics (HTML tags are not allowed)"
-                                        className={`w-full rounded-xl border px-3 py-2 text-sm focus:border-indigo-300 focus:ring-indigo-300 ${
+                                        className={`w-full rounded-xl border px-3 py-2 text-sm focus:border-primary-300 focus:ring-primary-300 ${
                                             errors.message ? 'border-red-400' : 'border-slate-200'
                                         }`}
                                         rows={5}
@@ -82,7 +82,7 @@ export default function AccountantEmails({ emails = '', message = '' }) {
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:bg-slate-400"
+                                        className="rounded-xl bg-primary-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:bg-slate-400"
                                     >
                                         {processing ? 'Saving...' : 'Save Settings'}
                                     </button>
