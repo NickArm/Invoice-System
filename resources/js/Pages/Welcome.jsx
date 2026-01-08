@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm, Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -146,6 +146,15 @@ export default function Welcome({ auth }) {
                                     >
                                         {loginForm.processing ? 'Logging in...' : 'Log In'}
                                     </button>
+
+                                    <div className="text-end">
+                                        <Link
+                                            href={route('password.request')}
+                                            className="text-sm text-indigo-400 hover:text-indigo-300 underline transition"
+                                        >
+                                            Forgot your password?
+                                        </Link>
+                                    </div>
 
                                     {loginForm.errors.general && (
                                         <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">

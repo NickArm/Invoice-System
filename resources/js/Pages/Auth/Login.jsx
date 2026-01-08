@@ -80,16 +80,14 @@ export default function Login({ status, canResetPassword }) {
                     </label>
                 </div>
 
-                {canResetPassword && (
-                    <div className="mt-4 text-end">
-                        <Link
-                            href={route('password.request')}
-                            className="text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded"
-                        >
-                            Forgot your password?
-                        </Link>
-                    </div>
-                )}
+                <div className="mt-4 text-end">
+                    <Link
+                        href={route('password.request')}
+                        className="text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded"
+                    >
+                        Forgot your password?
+                    </Link>
+                </div>
 
                 <div className="mt-4 flex items-center justify-end">
                     <PrimaryButton className="ms-0" disabled={processing}>

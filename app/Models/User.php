@@ -79,4 +79,30 @@ class User extends Authenticatable
     {
         $this->notify(new ResetPasswordNotification($token));
     }
+
+    /**
+     * Encrypt IMAP password when setting
+     */
+    public function setImapPasswordAttribute($value): void
+    {
+        if ($value) {
+            $this->attributes['imap_password'] = encrypt($value);
+        }
+    }
+
+    /**
+     * Decrypt IMAP password when getting
+     */
+    public function getImapPasswordAttribute($value): ?string
+    {
+        if ($value) {
+            try {
+                return decrypt($value);
+            } catch (\Exception $e) {
+                \Log::warning('Failed to decrypt IMAP password', ['user_id' => $this->id]);
+                return null;
+            }
+        }
+        return null;
+    }
 }

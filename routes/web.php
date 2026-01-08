@@ -29,7 +29,7 @@ Route::get('/', function () {
 
 Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware(['auth', 'active'])->group(function () {
+Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -77,8 +77,10 @@ Route::middleware(['auth', 'active'])->group(function () {
         return response()->file(Storage::disk('local')->path($attachment->path));
     })->name('attachments.preview');
 
-    // File upload + AI extraction trigger
-    Route::post('/upload', [UploadController::class, 'store'])->name('upload.store');
+    // File upload + AI extraction trigger (stricter limit)
+    Route::post('/upload', [UploadController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('upload.store');
 
     // Admin Panel - User Management (admin only)
     Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')->group(function () {
