@@ -243,3 +243,4 @@ class SettingsController extends Controller
 
         return response()->json($result);
     }
+}
