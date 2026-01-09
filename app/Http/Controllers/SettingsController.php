@@ -214,11 +214,7 @@ class SettingsController extends Controller
         )) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to initialize VAT Registry
-        )) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to initialize AADE client'
+                'message' => 'Failed to initialize VAT Registry client'
             ], 422);
         }
 
