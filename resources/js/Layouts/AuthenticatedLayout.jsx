@@ -66,6 +66,9 @@ export default function AuthenticatedLayout({ header, children }) {
                                     <Dropdown.Link href={route('settings.categories.index')}>
                                         Invoice Categories
                                     </Dropdown.Link>
+                                    <Dropdown.Link href={route('settings.aade')}>
+                                        AADE Integration
+                                    </Dropdown.Link>
                                     {user.role === 'admin' && (
                                         <Dropdown.Link href={route('admin.users.index')}>
                                             User Management
@@ -139,6 +142,9 @@ export default function AuthenticatedLayout({ header, children }) {
                             </ResponsiveNavLink>
                             <ResponsiveNavLink href={route('settings.categories.index')}>
                                 Invoice Categories
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink href={route('settings.aade')}>
+                                AADE Integration
                             </ResponsiveNavLink>
                             {user.role === 'admin' && (
                                 <ResponsiveNavLink href={route('admin.users.index')}>
