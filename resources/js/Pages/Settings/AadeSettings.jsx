@@ -4,7 +4,6 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import SettingsNav from '@/Components/SettingsNav';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
-import TextArea from '@/Components/TextArea';
 import PrimaryButton from '@/Components/PrimaryButton';
 import Alert from '@/Components/Alert';
 import Checkbox from '@/Components/Checkbox';
