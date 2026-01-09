@@ -18,7 +18,7 @@ export default function AadeSettings({ settings }) {
         // VAT Registry (for tax ID validation)
         vat_registry_username: settings.vat_registry_username || '',
         vat_registry_password: '',
-        
+
         // AADE myDATA (for invoices)
         aade_username: settings.aade_username || '',
         aade_password: '',
@@ -38,8 +38,8 @@ export default function AadeSettings({ settings }) {
 
     const handleTestConnection = async (e) => {
         e.preventDefault();
-        
-        if ((!data.vat_registry_username || !data.vat_registry_password) && 
+
+        if ((!data.vat_registry_username || !data.vat_registry_password) &&
             (!data.aade_username || !data.mydata_subscription_key)) {
             setTestResult({
                 success: false,
@@ -78,7 +78,7 @@ export default function AadeSettings({ settings }) {
 
     const handleValidateTaxId = async (e) => {
         e.preventDefault();
-        
+
         if (!testTaxId.trim()) {
             setValidateResult({
                 success: false,
@@ -125,11 +125,11 @@ export default function AadeSettings({ settings }) {
     return (
         <AuthenticatedLayout>
             <Head title="AADE Settings" />
-            
+
             <div className="py-12">
                 <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
                     <SettingsNav currentRoute="settings.aade" />
-                    
+
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
                         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -314,13 +314,13 @@ export default function AadeSettings({ settings }) {
                                             </button>
                                             {validateResult && (
                                                 <div className={`p-4 rounded-lg ${
-                                                    validateResult.success 
-                                                        ? 'bg-green-50 border border-green-200' 
+                                                    validateResult.success
+                                                        ? 'bg-green-50 border border-green-200'
                                                         : 'bg-red-50 border border-red-200'
                                                 }`}>
                                                     <p className={`text-sm font-semibold ${
-                                                        validateResult.success 
-                                                            ? 'text-green-700' 
+                                                        validateResult.success
+                                                            ? 'text-green-700'
                                                             : 'text-red-700'
                                                     }`}>
                                                         {validateResult.message}

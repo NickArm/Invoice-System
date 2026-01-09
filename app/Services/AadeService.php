@@ -3,13 +3,14 @@
 namespace App\Services;
 
 use Firebed\AadeMyData\Http\MyDataRequest;
-use Firebed\VatRegistry\VatRegistry;
+use Firebed\VatRegistry\TaxisNet;
+use Firebed\VatRegistry\VatException;
 use Illuminate\Support\Facades\Log;
 
 class AadeService
 {
     private ?MyDataRequest $mydataClient = null;
-    private ?VatRegistry $vatRegistry = null;
+    private ?TaxisNet $vatRegistry = null;
 
     /**
      * Initialize AADE myDATA client with subscription key
@@ -42,7 +43,7 @@ class AadeService
     public function initializeVatRegistry(string $username, string $password): bool
     {
         try {
-            $this->vatRegistry = new VatRegistry($username, $password);
+            $this->vatRegistry = new TaxisNet($username, $password);
             return true;
         } catch (\Exception $e) {
             Log::error('VAT Registry client initialization failed', [
@@ -77,10 +78,10 @@ class AadeService
                 ];
             }
 
-            // Query VAT Registry
-            $result = $this->vatRegistry->get($taxId);
+            // Query VAT Registry using TaxisNet
+            $entity = $this->vatRegistry->handle($taxId);
 
-            if (!$result || !isset($result['afm'])) {
+            if (!$entity || !$entity->vatNumber) {
                 return [
                     'success' => false,
                     'message' => 'Company not found in VAT Registry'
@@ -90,16 +91,28 @@ class AadeService
             return [
                 'success' => true,
                 'data' => [
-                    'tax_id' => $result['afm'] ?? $taxId,
-                    'name' => $result['onomasia'] ?? null,
-                    'doy' => $result['doy_descr'] ?? null,
-                    'postal_code' => $result['postal_zip_code'] ?? null,
-                    'address' => $result['postal_address'] ?? null,
-                    'activity' => $result['firm_act_descr'] ?? null,
-                    'status' => $result['i_ni_flag_descr'] ?? null,
+                    'tax_id' => $entity->vatNumber,
+                    'name' => $entity->legalName ?? $entity->commerceTitle,
+                    'doy' => $entity->taxAuthorityName,
+                    'postal_code' => $entity->postcode,
+                    'address' => trim(($entity->street ?? '') . ' ' . ($entity->streetNumber ?? '')),
+                    'city' => $entity->city,
+                    'activity' => isset($entity->firms[0]) ? $entity->firms[0]['description'] : null,
+                    'status' => $entity->validityDescription,
+                    'is_active' => $entity->isActive(),
                 ]
             ];
 
+        } catch (VatException $e) {
+            Log::error('VAT Registry validation failed', [
+                'tax_id' => $taxId,
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'VAT Registry error: ' . $e->getMessage()
+            ];
         } catch (\Exception $e) {
             Log::error('VAT Registry validation failed', [
                 'tax_id' => $taxId,
@@ -114,12 +127,28 @@ class AadeService
     }
 
     /**
-     * Test connection to VAT Registry
-     */
-    public function testVatRegistryConnection(): array
-    {
-        if (!$this->vatRegistry) {
+     * Test connection to VAT Reg with a known valid VAT number (National Bank of Greece)
+            $entity = $this->vatRegistry->handle('094014201');
+            
+            if ($entity && $entity->vatNumber) {
+                return [
+                    'success' => true,
+                    'message' => 'Connection to VAT Registry successful'
+                ];
+            }
+            
             return [
+                'success' => false,
+                'message' => 'VAT Registry connection failed - no response'
+            ];
+        } catch (VatException $e) {
+            Log::error('VAT Registry connection test failed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'VAT Registry error: ' . $e->getMessage()
                 'success' => false,
                 'message' => 'VAT Registry client not initialized'
             ];
