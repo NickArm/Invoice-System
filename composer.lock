@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4b101e90ec43ee8ecd56ae99171d94c0",
+    "content-hash": "9b7665eb5ba796116d7aa0ad67c1b17d",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -694,6 +694,61 @@
                 "source": "https://github.com/firebed/aade-mydata/tree/v5.0.0"
             },
             "time": "2024-08-21T06:41:43+00:00"
+        },
+        {
+            "name": "firebed/vat-registry",
+            "version": "v2.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/firebed/vat-registry.git",
+                "reference": "4ac11040811ce3e4786280af0215f5ef6e07f9bf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/firebed/vat-registry/zipball/4ac11040811ce3e4786280af0215f5ef6e07f9bf",
+                "reference": "4ac11040811ce3e4786280af0215f5ef6e07f9bf",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-mbstring": "*",
+                "ext-soap": "*",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10.0"
+            },
+            "type": "package",
+            "autoload": {
+                "psr-4": {
+                    "Firebed\\VatRegistry\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Okan Giritli",
+                    "email": "okan.giritli@gmail.com"
+                }
+            ],
+            "description": "Business Registry Information Search",
+            "keywords": [
+                "Business Registry",
+                "Search VAT",
+                "VAT Registry",
+                "VAT Search",
+                "ΑΦΜ",
+                "Αναζήτηση ΑΦΜ",
+                "Μητώο ΑΦΜ"
+            ],
+            "support": {
+                "issues": "https://github.com/firebed/vat-registry/issues",
+                "source": "https://github.com/firebed/vat-registry/tree/v2.0.2"
+            },
+            "time": "2025-12-14T15:53:50+00:00"
         },
         {
             "name": "fruitcake/php-cors",

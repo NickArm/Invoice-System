@@ -155,7 +155,12 @@ class SettingsController extends Controller
 
         return Inertia::render('Settings/AadeSettings', [
             'settings' => [
+                // VAT Registry (for tax ID validation)
+                'vat_registry_username' => $user->vat_registry_username,
+                
+                // AADE myDATA (for invoice submissions)
                 'aade_username' => $user->aade_username,
+                'mydata_subscription_key' => $user->mydata_subscription_key,
                 'aade_enabled' => $user->aade_enabled ?? false,
             ],
         ]);
@@ -164,22 +169,26 @@ class SettingsController extends Controller
     public function updateAadeSettings(Request $request)
     {
         $validated = $request->validate([
+            // VAT Registry credentials
+            'vat_registry_username' => 'nullable|string|max:255',
+            'vat_registry_password' => 'nullable|string|max:255',
+            
+            // AADE myDATA credentials
             'aade_username' => 'nullable|string|max:255',
             'aade_password' => 'nullable|string|max:255',
-            'aade_certificate' => 'nullable|string',
+            'mydata_subscription_key' => 'nullable|string|max:255',
             'aade_enabled' => 'boolean',
         ]);
 
         $user = auth()->user();
 
-        // Only update password if provided
+        // Only update passwords if provided
         if (empty($validated['aade_password'])) {
             unset($validated['aade_password']);
         }
-
-        // Only update certificate if provided
-        if (empty($validated['aade_certificate'])) {
-            unset($validated['aade_certificate']);
+        
+        if (empty($validated['vat_registry_password'])) {
+            unset($validated['vat_registry_password']);
         }
 
         $user->update($validated);
@@ -188,22 +197,20 @@ class SettingsController extends Controller
             ->with('success', 'AADE settings updated successfully.');
     }
 
-    public function validateTaxId(Request $request)
-    {
-        $validated = $request->validate([
-            'tax_id' => 'required|string|max:20',
-            'aade_username' => 'required|string|max:255',
-            'aade_password' => 'required|string|max:255',
-            'aade_certificate' => 'required|string',
+    public fuvat_registry_username' => 'required|string|max:255',
+            'vat_registry_password' => 'required|string|max:255',
         ]);
 
         $aadeService = new AadeService();
 
-        // Initialize with provided credentials
-        if (!$aadeService->initialize(
-            $validated['aade_username'],
-            $validated['aade_password'],
-            $validated['aade_certificate']
+        // Initialize VAT Registry with provided credentials
+        if (!$aadeService->initializeVatRegistry(
+            $validated['vat_registry_username'],
+            $validated['vat_registry_password']
+        )) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to initialize VAT Registry
         )) {
             return response()->json([
                 'success' => false,
@@ -222,25 +229,57 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'aade_username' => 'required|string|max:255',
             'aade_password' => 'required|string|max:255',
-            'aade_certificate' => 'required|string',
+            // VAT Registry test
+            'vat_registry_username' => 'nullable|string|max:255',
+            'vat_registry_password' => 'nullable|string|max:255',
+            
+            // myDATA test
+            'aade_username' => 'nullable|string|max:255',
+            'mydata_subscription_key' => 'nullable|string|max:255',
         ]);
 
+        $results = [];
         $aadeService = new AadeService();
 
-        // Try to initialize with provided credentials
-        if (!$aadeService->initialize(
-            $validated['aade_username'],
-            $validated['aade_password'],
-            $validated['aade_certificate']
-        )) {
+        // Test VAT Registry if credentials provided
+        if (!empty($validated['vat_registry_username']) && !empty($validated['vat_registry_password'])) {
+            if ($aadeService->initializeVatRegistry(
+                $validated['vat_registry_username'],
+                $validated['vat_registry_password']
+            )) {
+                $results['vat_registry'] = $aadeService->testVatRegistryConnection();
+            } else {
+                $results['vat_registry'] = [
+                    'success' => false,
+                    'message' => 'Failed to initialize VAT Registry client'
+                ];
+            }
+        }
+
+        // Test myDATA if credentials provided
+        if (!empty($validated['aade_username']) && !empty($validated['mydata_subscription_key'])) {
+            if ($aadeService->initializeMyData(
+                $validated['aade_username'],
+                $validated['mydata_subscription_key'],
+                true // sandbox
+            )) {
+                $results['mydata'] = $aadeService->testMyDataConnection();
+            } else {
+                $results['mydata'] = [
+                    'success' => false,
+                    'message' => 'Failed to initialize myDATA client'
+                ];
+            }
+        }
+
+        if (empty($results)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to initialize AADE client'
+                'message' => 'Please provide credentials to test'
             ], 422);
         }
 
-        $result = $aadeService->testConnection();
-
-        return response()->json($result);
-    }
-}
+        return response()->json([
+            'success' => true,
+            'results' => $results
+        ]

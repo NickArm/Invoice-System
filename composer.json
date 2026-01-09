@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "firebed/aade-mydata": "5.0",
+        "firebed/vat-registry": "^2.0",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",

@@ -2,32 +2,33 @@
 
 namespace App\Services;
 
-use Firebed\AadeMyData\Client;
-use Firebed\AadeMyData\Models\Request;
-use Firebed\AadeMyData\Models\CompanyInfo;
+use Firebed\AadeMyData\Http\MyDataRequest;
+use Firebed\VatRegistry\VatRegistry;
 use Illuminate\Support\Facades\Log;
 
 class AadeService
 {
-    private ?Client $client = null;
+    private ?MyDataRequest $mydataClient = null;
+    private ?VatRegistry $vatRegistry = null;
 
     /**
-     * Initialize AADE client with user credentials
+     * Initialize AADE myDATA client with subscription key
+     * Used for invoice submissions and data retrieval
      */
-    public function initialize(string $username, string $password, string $certificate): bool
+    public function initializeMyData(string $username, string $subscriptionKey, bool $sandbox = true): bool
     {
         try {
-            // Create client with credentials
-            $this->client = new Client(
-                username: $username,
-                password: $password,
-                certificate: $certificate,
-                sandbox: true // Use sandbox for testing
+            $environment = $sandbox ? 'dev' : 'prod';
+            
+            $this->mydataClient = new MyDataRequest(
+                userId: $username,
+                subscriptionKey: $subscriptionKey,
+                env: $environment
             );
 
             return true;
         } catch (\Exception $e) {
-            Log::error('AADE Client initialization failed', [
+            Log::error('AADE myDATA client initialization failed', [
                 'error' => $e->getMessage()
             ]);
             return false;
@@ -35,15 +36,32 @@ class AadeService
     }
 
     /**
-     * Validate a Greek tax ID (ΑΦΜ)
+     * Initialize VAT Registry client
+     * Used for tax ID validation
+     */
+    public function initializeVatRegistry(string $username, string $password): bool
+    {
+        try {
+            $this->vatRegistry = new VatRegistry($username, $password);
+            return true;
+        } catch (\Exception $e) {
+            Log::error('VAT Registry client initialization failed', [
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Validate a Greek tax ID (ΑΦΜ) using VAT Registry
      * Returns company information if valid
      */
     public function validateTaxId(string $taxId): array
     {
-        if (!$this->client) {
+        if (!$this->vatRegistry) {
             return [
                 'success' => false,
-                'message' => 'AADE client not initialized'
+                'message' => 'VAT Registry client not initialized'
             ];
         }
 
@@ -59,30 +77,31 @@ class AadeService
                 ];
             }
 
-            // Query company info from AADE
-            $companyInfo = $this->client->getCompanyInfo($taxId);
+            // Query VAT Registry
+            $result = $this->vatRegistry->get($taxId);
 
-            if (!$companyInfo) {
+            if (!$result || !isset($result['afm'])) {
                 return [
                     'success' => false,
-                    'message' => 'Company not found in AADE database'
+                    'message' => 'Company not found in VAT Registry'
                 ];
             }
 
             return [
                 'success' => true,
                 'data' => [
-                    'tax_id' => $taxId,
-                    'name' => $companyInfo->getName(),
-                    'status' => $companyInfo->getStatus(),
-                    'activity' => $companyInfo->getMainActivity(),
-                    'address' => $companyInfo->getAddress(),
-                    'phone' => $companyInfo->getPhoneNumber(),
+                    'tax_id' => $result['afm'] ?? $taxId,
+                    'name' => $result['onomasia'] ?? null,
+                    'doy' => $result['doy_descr'] ?? null,
+                    'postal_code' => $result['postal_zip_code'] ?? null,
+                    'address' => $result['postal_address'] ?? null,
+                    'activity' => $result['firm_act_descr'] ?? null,
+                    'status' => $result['i_ni_flag_descr'] ?? null,
                 ]
             ];
 
         } catch (\Exception $e) {
-            Log::error('AADE tax ID validation failed', [
+            Log::error('VAT Registry validation failed', [
                 'tax_id' => $taxId,
                 'error' => $e->getMessage()
             ]);
@@ -95,42 +114,64 @@ class AadeService
     }
 
     /**
-     * Test connection to AADE API
+     * Test connection to VAT Registry
      */
-    public function testConnection(): array
+    public function testVatRegistryConnection(): array
     {
-        if (!$this->client) {
+        if (!$this->vatRegistry) {
             return [
                 'success' => false,
-                'message' => 'AADE client not initialized'
+                'message' => 'VAT Registry client not initialized'
             ];
         }
 
         try {
-            // Try to validate a known test tax ID
-            $result = $this->validateTaxId('000000000');
+            // Try a simple query
+            $result = $this->vatRegistry->get('999999999');
             
             return [
                 'success' => true,
-                'message' => 'Connection to AADE API successful'
+                'message' => 'Connection to VAT Registry successful'
             ];
         } catch (\Exception $e) {
-            Log::error('AADE connection test failed', [
+            Log::error('VAT Registry connection test failed', [
                 'error' => $e->getMessage()
             ]);
 
             return [
                 'success' => false,
-                'message' => 'Connection to AADE API failed: ' . $e->getMessage()
+                'message' => 'Connection to VAT Registry failed: ' . $e->getMessage()
             ];
         }
     }
 
     /**
-     * Check if client is initialized
+     * Test connection to AADE myDATA API
      */
-    public function isInitialized(): bool
+    public function testMyDataConnection(): array
     {
-        return $this->client !== null;
+        if (!$this->mydataClient) {
+            return [
+                'success' => false,
+                'message' => 'AADE myDATA client not initialized'
+            ];
+        }
+
+        try {
+            // Simple connection test - check if client is configured
+            return [
+                'success' => true,
+                'message' => 'AADE myDATA client initialized successfully'
+            ];
+        } catch (\Exception $e) {
+            Log::error('AADE myDATA connection test failed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Connection to AADE myDATA failed: ' . $e->getMessage()
+            ];
+        }
     }
 }

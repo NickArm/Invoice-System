@@ -39,6 +39,9 @@ class User extends Authenticatable
         'aade_password',
         'aade_certificate',
         'aade_enabled',
+        'vat_registry_username',
+        'vat_registry_password',
+        'mydata_subscription_key',
     ];
 
     /**
@@ -52,6 +55,8 @@ class User extends Authenticatable
         'imap_password', // Hide IMAP password from serialization
         'aade_password', // Hide AADE password from serialization
         'aade_certificate', // Hide AADE certificate from serialization
+        'vat_registry_password', // Hide VAT Registry password
+        'mydata_subscription_key', // Hide myDATA subscription key
     ];
 
     /**
