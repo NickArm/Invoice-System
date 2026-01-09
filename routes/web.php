@@ -47,6 +47,11 @@ Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
         Route::post('/imap', [SettingsController::class, 'updateImapSettings'])->name('imap.update');
         Route::post('/imap/test', [SettingsController::class, 'testImapConnection'])->name('imap.test');
 
+        Route::get('/aade', [SettingsController::class, 'aadeSettings'])->name('aade');
+        Route::post('/aade', [SettingsController::class, 'updateAadeSettings'])->name('aade.update');
+        Route::post('/aade/validate-tax-id', [SettingsController::class, 'validateTaxId'])->name('aade.validate-tax-id');
+        Route::post('/aade/test-connection', [SettingsController::class, 'testAadeConnection'])->name('aade.test-connection');
+
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
         Route::patch('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');

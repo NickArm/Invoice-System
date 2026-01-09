@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Services\ImapService;
+use App\Services\AadeService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -147,4 +148,98 @@ class SettingsController extends Controller
 
         return response()->json($result);
     }
-}
+
+    public function aadeSettings()
+    {
+        $user = auth()->user();
+
+        return Inertia::render('Settings/AadeSettings', [
+            'settings' => [
+                'aade_username' => $user->aade_username,
+                'aade_enabled' => $user->aade_enabled ?? false,
+            ],
+        ]);
+    }
+
+    public function updateAadeSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'aade_username' => 'nullable|string|max:255',
+            'aade_password' => 'nullable|string|max:255',
+            'aade_certificate' => 'nullable|string',
+            'aade_enabled' => 'boolean',
+        ]);
+
+        $user = auth()->user();
+
+        // Only update password if provided
+        if (empty($validated['aade_password'])) {
+            unset($validated['aade_password']);
+        }
+
+        // Only update certificate if provided
+        if (empty($validated['aade_certificate'])) {
+            unset($validated['aade_certificate']);
+        }
+
+        $user->update($validated);
+
+        return redirect()->route('settings.aade')
+            ->with('success', 'AADE settings updated successfully.');
+    }
+
+    public function validateTaxId(Request $request)
+    {
+        $validated = $request->validate([
+            'tax_id' => 'required|string|max:20',
+            'aade_username' => 'required|string|max:255',
+            'aade_password' => 'required|string|max:255',
+            'aade_certificate' => 'required|string',
+        ]);
+
+        $aadeService = new AadeService();
+
+        // Initialize with provided credentials
+        if (!$aadeService->initialize(
+            $validated['aade_username'],
+            $validated['aade_password'],
+            $validated['aade_certificate']
+        )) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to initialize AADE client'
+            ], 422);
+        }
+
+        // Validate the tax ID
+        $result = $aadeService->validateTaxId($validated['tax_id']);
+
+        return response()->json($result);
+    }
+
+    public function testAadeConnection(Request $request)
+    {
+        $validated = $request->validate([
+            'aade_username' => 'required|string|max:255',
+            'aade_password' => 'required|string|max:255',
+            'aade_certificate' => 'required|string',
+        ]);
+
+        $aadeService = new AadeService();
+
+        // Try to initialize with provided credentials
+        if (!$aadeService->initialize(
+            $validated['aade_username'],
+            $validated['aade_password'],
+            $validated['aade_certificate']
+        )) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to initialize AADE client'
+            ], 422);
+        }
+
+        $result = $aadeService->testConnection();
+
+        return response()->json($result);
+    }

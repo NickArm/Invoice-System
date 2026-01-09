@@ -35,6 +35,10 @@ class User extends Authenticatable
         'imap_subject_filter',
         'imap_subject_match_type',
         'imap_enabled',
+        'aade_username',
+        'aade_password',
+        'aade_certificate',
+        'aade_enabled',
     ];
 
     /**
@@ -46,6 +50,8 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'imap_password', // Hide IMAP password from serialization
+        'aade_password', // Hide AADE password from serialization
+        'aade_certificate', // Hide AADE certificate from serialization
     ];
 
     /**
@@ -61,6 +67,7 @@ class User extends Authenticatable
             'accountant_emails' => 'array',
             'imap_ssl' => 'boolean',
             'imap_enabled' => 'boolean',
+            'aade_enabled' => 'boolean',
         ];
     }
 
