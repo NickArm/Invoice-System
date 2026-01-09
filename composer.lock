@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5f5ca2745123bea3f2b55ef9ce554409",
+    "content-hash": "4b101e90ec43ee8ecd56ae99171d94c0",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -640,6 +640,60 @@
                 }
             ],
             "time": "2025-03-06T22:45:56+00:00"
+        },
+        {
+            "name": "firebed/aade-mydata",
+            "version": "v5.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/firebed/aade-mydata.git",
+                "reference": "b5d53751b048ec34f97350c4f02f2cf8280b7fe2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/firebed/aade-mydata/zipball/b5d53751b048ec34f97350c4f02f2cf8280b7fe2",
+                "reference": "b5d53751b048ec34f97350c4f02f2cf8280b7fe2",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "ext-libxml": "*",
+                "guzzlehttp/guzzle": "^7.0.1",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "fakerphp/faker": "^1.23",
+                "phpunit/phpunit": "^10.0",
+                "roave/security-advisories": "dev-latest",
+                "symfony/var-dumper": "^6.0"
+            },
+            "type": "package",
+            "autoload": {
+                "psr-4": {
+                    "Firebed\\AadeMyData\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Okan Giritli",
+                    "email": "okan.giritli@gmail.com"
+                }
+            ],
+            "description": "Implementation of requests for AADE myDATA.",
+            "keywords": [
+                "aade",
+                "myDATA",
+                "ΑΑΔΕ"
+            ],
+            "support": {
+                "issues": "https://github.com/firebed/aade-mydata/issues",
+                "source": "https://github.com/firebed/aade-mydata/tree/v5.0.0"
+            },
+            "time": "2024-08-21T06:41:43+00:00"
         },
         {
             "name": "fruitcake/php-cors",

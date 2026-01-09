@@ -7,6 +7,7 @@ use App\Models\BusinessEntity;
 use App\Models\Category;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Services\BusinessEntityService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -223,57 +224,15 @@ class InvoiceController extends Controller
                 ->value('id');
         }
 
-        // Create or find business entity
-        $entity = null;
-        if (!empty($validated['entity_id'])) {
-            $entity = BusinessEntity::where('user_id', auth()->id())
-                ->where('id', $validated['entity_id'])
-                ->firstOrFail();
-        } elseif ($validated['supplier_name'] || $validated['supplier_tax_id']) {
-            // First try to find by tax_id if provided
-            if ($validated['supplier_tax_id']) {
-                $entity = BusinessEntity::where('user_id', auth()->id())
-                    ->where('tax_id', $validated['supplier_tax_id'])
-                    ->first();
-            }
+        // Create or find business entity using service
+        $entityService = new BusinessEntityService();
+        $entity = $entityService->findOrCreate(auth()->id(), $validated);
 
-            // If not found by tax_id, try by name (case-insensitive)
-            if (!$entity && $validated['supplier_name']) {
-                $entity = BusinessEntity::where('user_id', auth()->id())
-                    ->whereRaw('LOWER(name) = ?', [strtolower($validated['supplier_name'])])
-                    ->first();
-            }
-
-            if (!$entity) {
-                $entity = BusinessEntity::create([
-                    'user_id' => auth()->id(),
-                    'name' => $validated['supplier_name'] ?? 'Unknown Supplier',
-                    'tax_id' => $validated['supplier_tax_id'],
-                    'tax_office' => $validated['supplier_tax_office'] ?? null,
-                    'email' => $validated['supplier_email'] ?? null,
-                    'address' => $validated['supplier_address'] ?? null,
-                    'city' => $validated['supplier_city'] ?? null,
-                    'country' => $validated['supplier_country'] ?? null,
-                    'postal_code' => $validated['supplier_postal_code'] ?? null,
-                    'phone' => $validated['supplier_phone'] ?? null,
-                    'mobile' => $validated['supplier_mobile'] ?? null,
-                    'type' => $validated['supplier_type'] ?? ($validated['type'] === 'income' ? 'customer' : 'supplier'),
-                ]);
-            }
-        }
-
-        // Check for duplicate invoice (same number + same entity)
-        if ($validated['invoice_number'] && $entity) {
-            $duplicate = Invoice::where('user_id', auth()->id())
-                ->where('number', $validated['invoice_number'])
-                ->where('business_entity_id', $entity->id)
-                ->first();
-
-            if ($duplicate) {
-                return back()->withErrors([
-                    'invoice_number' => "Το τιμολόγιο με αριθμό {$validated['invoice_number']} από την εταιρεία {$entity->name} (ΑΦΜ: {$entity->tax_id}) υπάρχει ήδη καταχωρημένο."
-                ])->withInput();
-            }
+        // Check for duplicate invoice
+        if ($validated['invoice_number'] && $entity && $entityService->isDuplicate(auth()->id(), $validated['invoice_number'], $entity->id)) {
+            return back()->withErrors([
+                'invoice_number' => $entityService->getDuplicateMessage($entity, $validated['invoice_number'])
+            ])->withInput();
         }
 
         // Create invoice
@@ -412,35 +371,9 @@ class InvoiceController extends Controller
                 ->value('id');
         }
 
-        $entity = null;
-        if (!empty($validated['entity_id'])) {
-            $entity = BusinessEntity::where('user_id', auth()->id())
-                ->where('id', $validated['entity_id'])
-                ->firstOrFail();
-        } elseif ($validated['supplier_name'] || $validated['supplier_tax_id']) {
-            if ($validated['supplier_tax_id']) {
-                $entity = BusinessEntity::where('user_id', auth()->id())
-                    ->where('tax_id', $validated['supplier_tax_id'])
-                    ->first();
-            }
-
-            if (!$entity) {
-                $entity = BusinessEntity::create([
-                    'user_id' => auth()->id(),
-                    'name' => $validated['supplier_name'] ?? 'Unknown Supplier',
-                    'tax_id' => $validated['supplier_tax_id'],
-                    'tax_office' => $validated['supplier_tax_office'] ?? null,
-                    'email' => $validated['supplier_email'] ?? null,
-                    'address' => $validated['supplier_address'] ?? null,
-                    'city' => $validated['supplier_city'] ?? null,
-                    'country' => $validated['supplier_country'] ?? null,
-                    'postal_code' => $validated['supplier_postal_code'] ?? null,
-                    'phone' => $validated['supplier_phone'] ?? null,
-                    'mobile' => $validated['supplier_mobile'] ?? null,
-                    'type' => $validated['supplier_type'] ?? ($validated['type'] === 'income' ? 'customer' : 'supplier'),
-                ]);
-            }
-        }
+        // Create or find business entity using service
+        $entityService = new BusinessEntityService();
+        $entity = $entityService->findOrCreate(auth()->id(), $validated);
 
         $invoice->update([
             'business_entity_id' => $entity?->id,
