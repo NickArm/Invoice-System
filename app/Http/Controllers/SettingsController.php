@@ -197,7 +197,11 @@ class SettingsController extends Controller
             ->with('success', 'AADE settings updated successfully.');
     }
 
-    public fuvat_registry_username' => 'required|string|max:255',
+    public function validateTaxId(Request $request)
+    {
+        $validated = $request->validate([
+            'tax_id' => 'required|string|max:20',
+            'vat_registry_username' => 'required|string|max:255',
             'vat_registry_password' => 'required|string|max:255',
         ]);
 
