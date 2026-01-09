@@ -55,22 +55,12 @@ Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
 
     Route::post('/accountant/send', [AccountantReportController::class, 'send'])->name('accountant.send');
 
-    // Invoices
-    Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
-    Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
+    // Invoices (RESTful resource)
+    Route::resource('invoices', InvoiceController::class)->except(['show']);
     Route::get('/invoices/extract/{attachment}', [InvoiceController::class, 'extract'])->name('invoices.extract');
-    Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
-    Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
-    Route::patch('/invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
-    Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
 
-    // Business Entities
-    Route::get('/business-entities', [\App\Http\Controllers\BusinessEntityController::class, 'index'])->name('business-entities.index');
-    Route::get('/business-entities/create', [\App\Http\Controllers\BusinessEntityController::class, 'create'])->name('business-entities.create');
-    Route::get('/business-entities/{entity}/edit', [\App\Http\Controllers\BusinessEntityController::class, 'edit'])->name('business-entities.edit');
-    Route::post('/business-entities', [\App\Http\Controllers\BusinessEntityController::class, 'store'])->name('business-entities.store');
-    Route::patch('/business-entities/{entity}', [\App\Http\Controllers\BusinessEntityController::class, 'update'])->name('business-entities.update');
-    Route::delete('/business-entities/{entity}', [\App\Http\Controllers\BusinessEntityController::class, 'destroy'])->name('business-entities.destroy');
+    // Business Entities (RESTful resource)
+    Route::resource('business-entities', \App\Http\Controllers\BusinessEntityController::class);
 
     Route::get('/attachments/{attachment}/preview', function (Attachment $attachment) {
         if ($attachment->user_id !== auth()->id()) abort(403);
@@ -83,14 +73,9 @@ Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
         ->name('upload.store');
 
     // Admin Panel - User Management (admin only)
-    Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/users', [UserController::class, 'index'])->name('users.index');
-        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-        Route::post('/users', [UserController::class, 'store'])->name('users.store');
-        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-        Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('users', UserController::class)->except(['show']);
         Route::patch('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
-        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
 });
 
