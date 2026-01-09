@@ -157,7 +157,7 @@ class SettingsController extends Controller
             'settings' => [
                 // VAT Registry (for tax ID validation)
                 'vat_registry_username' => $user->vat_registry_username,
-                
+
                 // AADE myDATA (for invoice submissions)
                 'aade_username' => $user->aade_username,
                 'mydata_subscription_key' => $user->mydata_subscription_key,
@@ -172,7 +172,7 @@ class SettingsController extends Controller
             // VAT Registry credentials
             'vat_registry_username' => 'nullable|string|max:255',
             'vat_registry_password' => 'nullable|string|max:255',
-            
+
             // AADE myDATA credentials
             'aade_username' => 'nullable|string|max:255',
             'aade_password' => 'nullable|string|max:255',
@@ -186,7 +186,7 @@ class SettingsController extends Controller
         if (empty($validated['aade_password'])) {
             unset($validated['aade_password']);
         }
-        
+
         if (empty($validated['vat_registry_password'])) {
             unset($validated['vat_registry_password']);
         }
@@ -232,7 +232,7 @@ class SettingsController extends Controller
             // VAT Registry test
             'vat_registry_username' => 'nullable|string|max:255',
             'vat_registry_password' => 'nullable|string|max:255',
-            
+
             // myDATA test
             'aade_username' => 'nullable|string|max:255',
             'mydata_subscription_key' => 'nullable|string|max:255',
@@ -283,3 +283,6 @@ class SettingsController extends Controller
             'success' => true,
             'results' => $results
         ]
+        );
+    }
+}
