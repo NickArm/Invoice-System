@@ -12,7 +12,9 @@ class BusinessEntityController extends Controller
     {
         $user = auth()->user();
 
-        $query = BusinessEntity::where('user_id', $user->id)
+        // Admin can see all entities; regular users see only their own
+        $query = BusinessEntity::query()
+            ->when($user->role !== 'admin', fn($q) => $q->where('user_id', $user->id))
             ->withCount('invoices')
             ->latest();
 
@@ -50,8 +52,8 @@ class BusinessEntityController extends Controller
 
     public function edit(BusinessEntity $entity)
     {
-        // Ensure user owns this entity
-        if ($entity->user_id !== auth()->id()) {
+        // Ensure user owns this entity (admins bypass)
+        if ($entity->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
             abort(403);
         }
 
@@ -98,8 +100,8 @@ class BusinessEntityController extends Controller
 
     public function update(Request $request, BusinessEntity $entity)
     {
-        // Ensure user owns this entity
-        if ($entity->user_id !== auth()->id()) {
+        // Ensure user owns this entity (admins bypass)
+        if ($entity->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
             abort(403);
         }
 
@@ -124,8 +126,8 @@ class BusinessEntityController extends Controller
 
     public function destroy(BusinessEntity $entity)
     {
-        // Ensure user owns this entity
-        if ($entity->user_id !== auth()->id()) {
+        // Ensure user owns this entity (admins bypass)
+        if ($entity->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
             abort(403);
         }
 
