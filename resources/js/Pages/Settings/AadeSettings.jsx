@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useForm, Head } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import SettingsNav from '@/Components/SettingsNav';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -17,7 +16,7 @@ export default function AadeSettings({ settings }) {
     const { data, setData, post, processing, errors } = useForm({
         // VAT Registry (for tax ID validation)
         vat_registry_username: settings.vat_registry_username || '',
-        vat_registry_password: '',
+        vat_registry_password: settings.vat_registry_password || '',
 
         // AADE myDATA (for invoices)
         aade_username: settings.aade_username || '',
@@ -128,8 +127,6 @@ export default function AadeSettings({ settings }) {
 
             <div className="py-12">
                 <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
-                    <SettingsNav currentRoute="settings.aade" />
-
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
                         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -185,7 +182,7 @@ export default function AadeSettings({ settings }) {
                                                 <InputLabel htmlFor="vat_registry_password" value="VAT Registry Password" />
                                                 <TextInput
                                                     id="vat_registry_password"
-                                                    type="password"
+                                                    type="text"
                                                     value={data.vat_registry_password}
                                                     onChange={(e) => setData('vat_registry_password', e.target.value)}
                                                     className="mt-1 block w-full"

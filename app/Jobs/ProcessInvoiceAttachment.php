@@ -42,9 +42,18 @@ class ProcessInvoiceAttachment implements ShouldQueue
         $instructions .= "1. **SUPPLIER (Εκδότης/From)**: The company that ISSUED the invoice (usually at TOP of document)\n";
         $instructions .= "   - For Greek: Look for 'ΕΚΔΟΤΗΣ', 'ΠΩΛΗΤΗΣ', or company details near the header/logo\n";
         $instructions .= "   - The supplier name is the OFFICIAL company name (e.g., 'ELECTROINVEST A.E.'), NOT brand names or person names\n";
-        $instructions .= "   - The supplier Tax ID (ΑΦΜ) is EXACTLY 9 digits (sometimes 10)\n";
-        $instructions .= "   - DO NOT use ΑΡ.ΓΕΜΗ (GEMI number) as Tax ID - it's usually 12+ digits\n";
-        $instructions .= "   - Look for 'ΑΦΜ:' or 'Α.Φ.Μ.' label followed by 9-digit number\n";
+        $instructions .= "   - **TAX ID (ΑΦΜ) EXTRACTION - CRITICAL**:\n";
+        $instructions .= "     * Tax ID is EXACTLY 9 digits (rarely 10 for special cases)\n";
+        $instructions .= "     * Look CAREFULLY for the label 'ΑΦΜ:' or 'Α.Φ.Μ.' followed by the number\n";
+        $instructions .= "     * The Tax ID appears NEAR the company name in the header/issuer section\n";
+        $instructions .= "     * DOUBLE-CHECK: Count the digits - must be 9 digits exactly\n";
+        $instructions .= "     * DO NOT confuse with:\n";
+        $instructions .= "       - ΑΡ.ΓΕΜΗ / ΑΡΙΘΜΟΣ ΓΕΜΗ (12+ digits) - this is NOT Tax ID\n";
+        $instructions .= "       - Invoice number\n";
+        $instructions .= "       - Phone numbers\n";
+        $instructions .= "       - Postal codes\n";
+        $instructions .= "     * If you find multiple 9-digit numbers, choose the one labeled 'ΑΦΜ' or closest to company name\n";
+        $instructions .= "     * VERIFY: Re-read the Tax ID field before finalizing to ensure accuracy\n";
         $instructions .= "   - If you see 'ΕΠΩΝΥΜΙΑ' or 'ΕΤΑΙΡΙΚΗ ΜΟΡΦΗ' near the top, that's the official supplier name\n\n";
 
         $instructions .= "2. **RECIPIENT (Παραλήπτης/To)**: The company that RECEIVES the invoice\n";
@@ -171,6 +180,23 @@ class ProcessInvoiceAttachment implements ShouldQueue
 
             $data = $this->normalizeExtraction($data);
 
+            // AFM correction: if AI-afm invalid and we have a PDF, try extracting text via pdftotext
+            $afm = $this->normalizeTaxId($data['supplier']['tax_id'] ?? null);
+            if (!$this->isValidGreekTaxId($afm) && str_starts_with($mimeType, 'application/pdf')) {
+                $pdfText = $this->extractPdfTextWithPoppler($filePath);
+                if ($pdfText) {
+                    $textAfm = $this->extractTaxIdFromText($pdfText);
+                    if ($textAfm && $this->isValidGreekTaxId($textAfm)) {
+                        $data['supplier']['tax_id'] = $textAfm;
+                        \Log::info('AFM corrected via pdftotext fallback', [
+                            'attachment_id' => $this->attachment->id,
+                            'old_afm' => $afm,
+                            'new_afm' => $textAfm,
+                        ]);
+                    }
+                }
+            }
+
             $this->attachment->update([
                 'extracted_data' => $data,
                 'status' => 'extracted',
@@ -198,6 +224,28 @@ class ProcessInvoiceAttachment implements ShouldQueue
     {
         try {
             $entity = $this->resolveBusinessEntity($data['supplier'] ?? []);
+
+            // Check for duplicate invoice before creating
+            if (!empty($data['invoice_number']) && $entity) {
+                $existingInvoice = Invoice::where('user_id', $this->attachment->user_id)
+                    ->where('number', $data['invoice_number'])
+                    ->where('business_entity_id', $entity->id)
+                    ->first();
+
+                if ($existingInvoice) {
+                    \Log::warning('Duplicate invoice detected from email - skipping creation', [
+                        'invoice_number' => $data['invoice_number'],
+                        'entity_id' => $entity->id,
+                        'entity_name' => $entity->name,
+                        'existing_invoice_id' => $existingInvoice->id,
+                        'attachment_id' => $this->attachment->id,
+                    ]);
+
+                    // Mark attachment as processed but don't create duplicate invoice
+                    $this->attachment->update(['status' => 'duplicate']);
+                    return;
+                }
+            }
 
             $invoiceData = [
                 'user_id' => $this->attachment->user_id,
@@ -281,18 +329,42 @@ class ProcessInvoiceAttachment implements ShouldQueue
         $taxId = $this->normalizeTaxId($supplier['tax_id'] ?? null);
         $name = trim($supplier['name'] ?? '') ?: 'Unknown';
 
-        $query = BusinessEntity::where('user_id', $this->attachment->user_id);
-        if ($taxId) {
-            $query->where('tax_id', $taxId);
-        } else {
-            $query->where('name', $name);
+            // First try to find by tax ID
+            if ($taxId) {
+                $existing = BusinessEntity::where('user_id', $this->attachment->user_id)
+                    ->where('tax_id', $taxId)
+                    ->first();
+
+                if ($existing) {
+                    return $existing;
+                }
+            }
+
+            // Try to find by name
+            $existingByName = BusinessEntity::where('user_id', $this->attachment->user_id)
+                ->whereRaw('LOWER(name) = ?', [strtolower($name)])
+                ->first();
+
+            if ($existingByName) {
+                // Check if Tax IDs differ (potential OCR error)
+                if ($taxId && $existingByName->tax_id && $taxId !== $existingByName->tax_id) {
+                    \Log::warning('Email import: Same company name with different Tax ID', [
+                        'attachment_id' => $this->attachment->id,
+                        'company_name' => $name,
+                        'existing_tax_id' => $existingByName->tax_id,
+                        'extracted_tax_id' => $taxId,
+                        'user_id' => $this->attachment->user_id,
+                    ]);
+
+                    // Use existing entity but log the discrepancy
+                    // User can manually review draft invoices
+                    return $existingByName;
+                }
+
+                return $existingByName;
         }
 
-        $existing = $query->first();
-        if ($existing) {
-            return $existing;
-        }
-
+            // Create new entity
         return BusinessEntity::create([
             'user_id' => $this->attachment->user_id,
             'name' => $name,
@@ -440,6 +512,105 @@ class ProcessInvoiceAttachment implements ShouldQueue
         }
 
         return null;
+    }
+
+    // Extract full text from PDF using poppler's pdftotext
+    private function extractPdfTextWithPoppler(string $filePath): ?string
+    {
+        $pdftotext = $this->findPdftotext();
+        if (!$pdftotext) {
+            \Log::debug('pdftotext binary not found');
+            return null;
+        }
+
+        $tempTxt = tempnam(sys_get_temp_dir(), 'pdf2txt_');
+        if ($tempTxt === false) {
+            return null;
+        }
+
+        // -layout keeps visual layout which helps with labels like ΑΦΜ
+        $process = new Process([$pdftotext, '-layout', $filePath, $tempTxt]);
+        $process->setTimeout(20);
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            \Log::debug('pdftotext failed', ['exit' => $process->getExitCode(), 'err' => $process->getErrorOutput()]);
+            @unlink($tempTxt);
+            return null;
+        }
+
+        $text = @file_get_contents($tempTxt) ?: null;
+        @unlink($tempTxt);
+        return $text;
+    }
+
+    // Locate pdftotext on Windows
+    private function findPdftotext(): ?string
+    {
+        $commonPaths = [
+            'C:\\xampp82\\poppler\\Library\\bin\\pdftotext.exe',
+            'C:\\Program Files\\Poppler\\bin\\pdftotext.exe',
+            'C:\\Program Files (x86)\\Poppler\\bin\\pdftotext.exe',
+            'C:\\tools\\poppler\\bin\\pdftotext.exe',
+        ];
+
+        foreach ($commonPaths as $path) {
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+
+        $process = new Process(['where', 'pdftotext']);
+        $process->run();
+        if ($process->isSuccessful()) {
+            $path = trim($process->getOutput());
+            if (!empty($path)) {
+                return $path;
+            }
+        }
+        return null;
+    }
+
+    // Extract AFM value from text using Greek labels and checksum validation
+    private function extractTaxIdFromText(string $text): ?string
+    {
+        // Try explicit ΑΦΜ label first
+        $pattern = '/Α\s*\.?\s*Φ\s*\.?\s*Μ\s*[:\-]?\s*(\d{9,10})/u';
+        if (preg_match($pattern, $text, $m)) {
+            $candidate = $this->normalizeTaxId($m[1]);
+            if ($this->isValidGreekTaxId($candidate)) {
+                return $candidate;
+            }
+        }
+
+        // Fallback: scan for any 9-10 digit sequences and pick the first valid by checksum
+        if (preg_match_all('/\b(\d{9,10})\b/u', $text, $matches)) {
+            foreach ($matches[1] as $num) {
+                $candidate = $this->normalizeTaxId($num);
+                if ($this->isValidGreekTaxId($candidate)) {
+                    return $candidate;
+                }
+            }
+        }
+        return null;
+    }
+
+
+    // Validate Greek AFM using checksum (first 8 digits weighted by powers of 2, result mod 11, then mod 10)
+    private function isValidGreekTaxId(?string $afm): bool
+    {
+        if (!$afm) return false;
+        if (!preg_match('/^\d{9}$/', $afm)) return false;
+        $sum = 0;
+        // weights: 2,4,8,16,32,64,128,256 for digits 1..8
+        for ($i = 0; $i < 8; $i++) {
+            $digit = intval($afm[$i]);
+            $weight = 1 << ($i + 1); // 2^(i+1)
+            $sum += $digit * $weight;
+        }
+        $remainder = $sum % 11;
+        $check = $remainder % 10;
+        return intval($afm[8]) === $check;
     }
 
     private function imageContentPayload(?string $base64Content, string $mimeType): array

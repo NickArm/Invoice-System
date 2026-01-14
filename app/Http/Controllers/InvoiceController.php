@@ -28,7 +28,7 @@ class InvoiceController extends Controller
             'max_amount',
         ]);
 
-        $type = $filters['type'] ?? 'income';
+        $type = $filters['type'] ?? 'all';
 
         $query = Invoice::with(['businessEntity', 'attachment', 'category'])
             ->where('user_id', $userId);
@@ -226,7 +226,15 @@ class InvoiceController extends Controller
 
         // Create or find business entity using service
         $entityService = new BusinessEntityService();
-        $entity = $entityService->findOrCreate(auth()->id(), $validated);
+
+        try {
+            $entity = $entityService->findOrCreate(auth()->id(), $validated);
+        } catch (\Exception $e) {
+            // If duplicate name with different Tax ID detected, return error
+            return back()->withErrors([
+                'supplier_name' => $e->getMessage()
+            ])->withInput();
+        }
 
         // Check for duplicate invoice
         if ($validated['invoice_number'] && $entity && $entityService->isDuplicate(auth()->id(), $validated['invoice_number'], $entity->id)) {

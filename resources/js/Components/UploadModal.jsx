@@ -79,6 +79,11 @@ export default function UploadModal({ isOpen, onClose }) {
                 }
 
                 attachmentIds.push(data.attachment_id);
+
+                // Add small delay between uploads to avoid rate limiting
+                if (files.indexOf(file) < files.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
             } catch (error) {
                 alert(`Upload failed for ${file.name}: ${error.message}`);
             }

@@ -59,6 +59,7 @@ Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
     });
 
     Route::post('/accountant/send', [AccountantReportController::class, 'send'])->name('accountant.send');
+    Route::get('/export-send', [AccountantReportController::class, 'show'])->name('export-send.index');
 
     // Invoices (RESTful resource)
     Route::resource('invoices', InvoiceController::class)->except(['show']);
@@ -72,9 +73,9 @@ Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
         return response()->file(Storage::disk('local')->path($attachment->path));
     })->name('attachments.preview');
 
-    // File upload + AI extraction trigger (stricter limit)
+    // File upload + AI extraction trigger
     Route::post('/upload', [UploadController::class, 'store'])
-        ->middleware('throttle:10,1')
+        ->middleware('throttle:30,1')
         ->name('upload.store');
 
     // Admin Panel - User Management (admin only)

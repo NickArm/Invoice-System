@@ -50,27 +50,27 @@ class BusinessEntityController extends Controller
         return Inertia::render('BusinessEntities/Create');
     }
 
-    public function edit(BusinessEntity $entity)
+    public function edit(BusinessEntity $businessEntity)
     {
         // Ensure user owns this entity (admins bypass)
-        if ($entity->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+        if ($businessEntity->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
             abort(403);
         }
 
         return Inertia::render('BusinessEntities/Edit', [
             'entity' => [
-                'id' => $entity->id,
-                'name' => $entity->name,
-                'tax_id' => $entity->tax_id,
-                'tax_office' => $entity->tax_office,
-                'email' => $entity->email,
-                'country' => $entity->country,
-                'city' => $entity->city,
-                'address' => $entity->address,
-                'postal_code' => $entity->postal_code,
-                'phone' => $entity->phone,
-                'mobile' => $entity->mobile,
-                'type' => $entity->type,
+                'id' => $businessEntity->id,
+                'name' => $businessEntity->name,
+                'tax_id' => $businessEntity->tax_id,
+                'tax_office' => $businessEntity->tax_office,
+                'email' => $businessEntity->email,
+                'country' => $businessEntity->country,
+                'city' => $businessEntity->city,
+                'address' => $businessEntity->address,
+                'postal_code' => $businessEntity->postal_code,
+                'phone' => $businessEntity->phone,
+                'mobile' => $businessEntity->mobile,
+                'type' => $businessEntity->type,
             ],
         ]);
     }
@@ -98,10 +98,10 @@ class BusinessEntityController extends Controller
         return redirect()->route('business-entities.index')->with('success', 'Business entity created successfully!');
     }
 
-    public function update(Request $request, BusinessEntity $entity)
+    public function update(Request $request, BusinessEntity $businessEntity)
     {
         // Ensure user owns this entity (admins bypass)
-        if ($entity->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+        if ($businessEntity->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
             abort(403);
         }
 
@@ -119,19 +119,19 @@ class BusinessEntityController extends Controller
             'type' => 'required|in:customer,supplier',
         ]);
 
-        $entity->update($validated);
+        $businessEntity->update($validated);
 
         return redirect()->route('business-entities.index')->with('success', 'Business entity updated successfully!');
     }
 
-    public function destroy(BusinessEntity $entity)
+    public function destroy(BusinessEntity $businessEntity)
     {
         // Ensure user owns this entity (admins bypass)
-        if ($entity->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+        if ($businessEntity->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
             abort(403);
         }
 
-        $entity->delete();
+        $businessEntity->delete();
 
         return redirect()->route('business-entities.index')->with('success', 'Business entity deleted successfully!');
     }

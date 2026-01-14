@@ -1,20 +1,38 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 export default function Edit({ entity }) {
     const { data, setData, patch, processing, errors } = useForm({
-        name: entity.name || '',
-        tax_id: entity.tax_id || '',
-        tax_office: entity.tax_office || '',
-        email: entity.email || '',
-        country: entity.country || '',
-        city: entity.city || '',
-        address: entity.address || '',
-        postal_code: entity.postal_code || '',
-        phone: entity.phone || '',
-        mobile: entity.mobile || '',
-        type: entity.type || 'customer',
+        name: '',
+        tax_id: '',
+        tax_office: '',
+        email: '',
+        country: '',
+        city: '',
+        address: '',
+        postal_code: '',
+        phone: '',
+        mobile: '',
+        type: 'customer',
     });
+
+    // Always sync form state with the loaded entity (important after a failed/403 visit)
+    useEffect(() => {
+        setData({
+            name: entity.name || '',
+            tax_id: entity.tax_id || '',
+            tax_office: entity.tax_office || '',
+            email: entity.email || '',
+            country: entity.country || '',
+            city: entity.city || '',
+            address: entity.address || '',
+            postal_code: entity.postal_code || '',
+            phone: entity.phone || '',
+            mobile: entity.mobile || '',
+            type: entity.type || 'customer',
+        });
+    }, [entity, setData]);
 
     const handleSubmit = (e) => {
         e.preventDefault();

@@ -14,7 +14,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
         end_date: filters.end_date || '',
         min_amount: filters.min_amount || '',
         max_amount: filters.max_amount || '',
-        type: filters.type || 'income',
+        type: filters.type || 'all',
     });
 
     const currencySymbol = (currency) => {
@@ -102,6 +102,13 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                         <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-2 py-1">
                             <button
                                 type="button"
+                                onClick={() => setTab('all')}
+                                className={`rounded-full px-3 py-1 text-sm font-semibold ${localFilters.type === 'all' ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-600 hover:text-primary-700'}`}
+                            >
+                                All
+                            </button>
+                            <button
+                                type="button"
                                 onClick={() => setTab('income')}
                                 className={`rounded-full px-3 py-1 text-sm font-semibold ${localFilters.type === 'income' ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-600 hover:text-primary-700'}`}
                             >
@@ -185,7 +192,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                                 type="date"
                                 value={localFilters.start_date}
                                 onChange={(e) => setLocalFilters({ ...localFilters, start_date: e.target.value })}
-                                className="flex-1 focus:outline-none"
+                                className="flex-1 border-0 bg-transparent focus:outline-none focus:ring-0"
                             />
                         </div>
 
@@ -195,7 +202,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                                 type="date"
                                 value={localFilters.end_date}
                                 onChange={(e) => setLocalFilters({ ...localFilters, end_date: e.target.value })}
-                                className="flex-1 focus:outline-none"
+                                className="flex-1 border-0 bg-transparent focus:outline-none focus:ring-0"
                             />
                         </div>
                     </div>
@@ -208,7 +215,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                                 step="0.01"
                                 value={localFilters.min_amount}
                                 onChange={(e) => setLocalFilters({ ...localFilters, min_amount: e.target.value })}
-                                className="flex-1 focus:outline-none"
+                                className="flex-1 border-0 bg-transparent focus:outline-none focus:ring-0 "
                             />
                         </div>
                         <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm">
@@ -218,7 +225,7 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                                 step="0.01"
                                 value={localFilters.max_amount}
                                 onChange={(e) => setLocalFilters({ ...localFilters, max_amount: e.target.value })}
-                                className="flex-1 focus:outline-none"
+                                className="flex-1 border-0 bg-transparent focus:outline-none focus:ring-0"
                             />
                         </div>
                     </div>

@@ -14,7 +14,7 @@ class DashboardController extends Controller
     {
         $userId = auth()->id();
         $now = Carbon::now();
-        $period = request('period', 'this_month');
+        $period = request('period', 'this_year');
         $tab = request('tab', 'overview');
         $range = $this->resolveRange($period, $now);
         $startLast12 = $now->copy()->subMonths(11)->startOfMonth();

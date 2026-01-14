@@ -15,7 +15,7 @@ return new class extends Migration
             // VAT Registry credentials (for tax ID validation)
             $table->string('vat_registry_username')->nullable()->after('aade_enabled');
             $table->string('vat_registry_password')->nullable()->after('vat_registry_username');
-            
+
             // Rename AADE fields to be more specific (myDATA API)
             // Keep existing aade_* fields but add mydata_subscription_key
             $table->string('mydata_subscription_key')->nullable()->after('vat_registry_password');

@@ -13,14 +13,9 @@ const statusBadge = (status) => {
     return 'bg-slate-100 text-slate-700';
 };
 
-export default function Dashboard({ metrics, chartData = [], latestInvoices = [], period = 'this_month', periodOptions = [], analytics = {}, tab = 'overview', accountantEmails = [], exportDefaults = {} }) {
+export default function Dashboard({ metrics, chartData = [], latestInvoices = [], period = 'this_year', periodOptions = [], analytics = {}, tab = 'overview' }) {
     const currency = metrics?.currency || 'EUR';
     const { flash = {} } = usePage().props || {};
-    const sendForm = useForm({
-        date_from: exportDefaults?.date_from || '',
-        date_to: exportDefaults?.date_to || '',
-        type: 'all',
-    });
     const summaryCards = [
         {
             title: 'Total Income',
@@ -68,12 +63,7 @@ export default function Dashboard({ metrics, chartData = [], latestInvoices = []
         router.get(route('dashboard'), { period, tab: next }, { preserveState: true, replace: true });
     };
 
-    const handleSendReport = (e) => {
-        e.preventDefault();
-        sendForm.post(route('accountant.send'), { preserveScroll: true });
-    };
-
-    const periodLabel = periodOptions.find((p) => p.value === period)?.label || metrics?.period || 'This Month';
+    const periodLabel = periodOptions.find((p) => p.value === period)?.label || metrics?.period || 'This Year';
 
     const topCustomers = analytics?.topCustomers || [];
     const topVendors = analytics?.topVendors || [];
@@ -127,89 +117,6 @@ export default function Dashboard({ metrics, chartData = [], latestInvoices = []
             <div className="px-4 py-6 sm:px-6 lg:px-8">
                 {tab === 'overview' && (
                     <div className="space-y-6">
-                        <div className="rounded-xl border border-gray-200 bg-white/80 p-4 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/80">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-500">Send invoices to accountant</p>
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Range export & email</h3>
-                                    <p className="text-xs text-gray-500">Select a date range and we will email the summary and all attachments as a ZIP.</p>
-                                </div>
-                                {flash?.success && (
-                                    <div className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1 text-xs font-semibold text-emerald-700">
-                                        {flash.success}
-                                    </div>
-                                )}
-                            </div>
-
-                            <form onSubmit={handleSendReport} className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-                                <div className="space-y-1 lg:col-span-2">
-                                    <label className="text-xs font-semibold text-gray-600">Date From</label>
-                                    <input
-                                        type="date"
-                                        value={sendForm.data.date_from}
-                                        onChange={(e) => sendForm.setData('date_from', e.target.value)}
-                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
-                                    />
-                                    {sendForm.errors.date_from && <p className="text-xs text-red-600">{sendForm.errors.date_from}</p>}
-                                </div>
-
-                                <div className="space-y-1 lg:col-span-2">
-                                    <label className="text-xs font-semibold text-gray-600">Date To</label>
-                                    <input
-                                        type="date"
-                                        value={sendForm.data.date_to}
-                                        onChange={(e) => sendForm.setData('date_to', e.target.value)}
-                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
-                                    />
-                                    {sendForm.errors.date_to && <p className="text-xs text-red-600">{sendForm.errors.date_to}</p>}
-                                </div>
-
-                                <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-600">Type</label>
-                                    <select
-                                        value={sendForm.data.type}
-                                        onChange={(e) => sendForm.setData('type', e.target.value)}
-                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
-                                    >
-                                        <option value="all">All</option>
-                                        <option value="income">Income</option>
-                                        <option value="expense">Expenses</option>
-                                    </select>
-                                </div>
-
-                                <div className="lg:col-span-5 flex flex-wrap items-center gap-2">
-                                    <div className="flex flex-wrap gap-2 text-xs text-gray-600">
-                                        {accountantEmails.length === 0 && (
-                                            <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-700">
-                                                No recipients set. Add emails in Settings.
-                                            </span>
-                                        )}
-                                        {accountantEmails.map((email) => (
-                                            <span
-                                                key={email}
-                                                className="rounded-full border border-primary-200 bg-primary-50 px-3 py-1 font-semibold text-primary-700"
-                                            >
-                                                {email}
-                                            </span>
-                                        ))}
-                                        {sendForm.errors.emails && (
-                                            <span className="text-red-600">{sendForm.errors.emails}</span>
-                                        )}
-                                    </div>
-
-                                    <div className="ml-auto">
-                                        <button
-                                            type="submit"
-                                            disabled={accountantEmails.length === 0 || sendForm.processing}
-                                            className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:bg-gray-400"
-                                        >
-                                            {sendForm.processing ? 'Sending...' : 'Send to accountant'}
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-
                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                             {summaryCards.map((card) => (
                                 <div

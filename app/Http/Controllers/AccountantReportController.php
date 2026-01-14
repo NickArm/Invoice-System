@@ -10,10 +10,25 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 use ZipArchive;
 
 class AccountantReportController extends Controller
 {
+    public function show(Request $request)
+    {
+        $user = $request->user();
+        $now = Carbon::now();
+
+        return Inertia::render('ExportAndSend', [
+            'accountantEmails' => collect($user->accountant_emails ?? [])->filter()->values(),
+            'exportDefaults' => [
+                'date_from' => $now->copy()->startOfMonth()->format('Y-m-d'),
+                'date_to' => $now->format('Y-m-d'),
+            ],
+        ]);
+    }
+
     public function send(Request $request): RedirectResponse
     {
         $validated = $request->validate([

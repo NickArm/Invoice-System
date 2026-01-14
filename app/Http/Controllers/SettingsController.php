@@ -157,6 +157,7 @@ class SettingsController extends Controller
             'settings' => [
                 // VAT Registry (for tax ID validation)
                 'vat_registry_username' => $user->vat_registry_username,
+                'vat_registry_password' => $user->vat_registry_password,
 
                 // AADE myDATA (for invoice submissions)
                 'aade_username' => $user->aade_username,

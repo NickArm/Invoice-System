@@ -8,19 +8,19 @@
       .checkmark { stroke: white; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
     </style>
   </defs>
-  
+
   <!-- Document background -->
   <rect class="document" x="40" y="24" width="160" height="208" rx="16" />
-  
+
   <!-- Document lines -->
   <line class="lines" x1="64" y1="56" x2="192" y2="56" />
   <line class="lines" x1="64" y1="96" x2="192" y2="96" />
   <line class="lines" x1="64" y1="136" x2="192" y2="136" />
   <line class="lines" x1="64" y1="176" x2="144" y2="176" />
-  
+
   <!-- Checkbox circle background -->
   <circle class="checkbox-bg" cx="152" cy="184" r="32" />
-  
+
   <!-- Checkmark -->
   <path class="checkmark" d="M 136 184 L 148 196 L 168 176" />
 </svg>

@@ -20,7 +20,7 @@ class AadeService
     {
         try {
             $environment = $sandbox ? 'dev' : 'prod';
-            
+
             $this->mydataClient = new MyDataRequest(
                 userId: $username,
                 subscriptionKey: $subscriptionKey,
@@ -129,14 +129,14 @@ class AadeService
     /**
      * Test connection to VAT Reg with a known valid VAT number (National Bank of Greece)
             $entity = $this->vatRegistry->handle('094014201');
-            
+
             if ($entity && $entity->vatNumber) {
                 return [
                     'success' => true,
                     'message' => 'Connection to VAT Registry successful'
                 ];
             }
-            
+
             return [
                 'success' => false,
                 'message' => 'VAT Registry connection failed - no response'
@@ -157,7 +157,7 @@ class AadeService
         try {
             // Try a simple query
             $result = $this->vatRegistry->get('999999999');
-            
+
             return [
                 'success' => true,
                 'message' => 'Connection to VAT Registry successful'
