@@ -19,4 +19,9 @@ return [
         'host' => env('MAILERSEND_HOST', 'api.mailersend.com'),
     ],
 
+    'llamaindex' => [
+        'api_key' => env('LLAMAINDEX_API_KEY'),
+        'agent_id' => env('LLAMAINDEX_AGENT_ID'),
+    ],
+
 ];

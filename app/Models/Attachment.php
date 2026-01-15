@@ -18,10 +18,12 @@ class Attachment extends Model
         'page_count',
         'status',
         'extracted_data',
+        'needs_review',
     ];
 
     protected $casts = [
         'extracted_data' => 'array',
+        'needs_review' => 'boolean',
     ];
 
     public function user(): BelongsTo

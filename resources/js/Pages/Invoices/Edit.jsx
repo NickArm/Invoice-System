@@ -1,9 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Edit({ invoice, entities = [], categories = [], attachment = null }) {
     const [showAttachment, setShowAttachment] = useState(false);
+    const initialEntityId = useRef(invoice.entity_id || '');
     const { data, setData, patch, processing, errors } = useForm({
         type: invoice.type || 'expense',
         entity_id: invoice.entity_id || '',
@@ -25,11 +26,12 @@ export default function Edit({ invoice, entities = [], categories = [], attachme
     });
 
     useEffect(() => {
-        if (data.entity_id) {
+        // Clear manual supplier fields only when the user changes the entity selection after mount
+        if (data.entity_id && data.entity_id !== initialEntityId.current) {
             setData('supplier_name', '');
             setData('supplier_tax_id', '');
         }
-    }, [data.entity_id]);
+    }, [data.entity_id, setData]);
 
     const setType = (value) => {
         setData('type', value);
@@ -185,7 +187,7 @@ export default function Edit({ invoice, entities = [], categories = [], attachme
                                 </select>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Or set new entity name</label>
+                                <label className="text-sm font-semibold text-slate-700">Or set new entity name <span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
                                     value={data.supplier_name}
@@ -199,7 +201,7 @@ export default function Edit({ invoice, entities = [], categories = [], attachme
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Tax ID</label>
+                                <label className="text-sm font-semibold text-slate-700">Tax ID <span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
                                     value={data.supplier_tax_id}
@@ -219,7 +221,7 @@ export default function Edit({ invoice, entities = [], categories = [], attachme
                                 {errors.supplier_email && <p className="text-sm text-red-600">{errors.supplier_email}</p>}
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Invoice Number</label>
+                                <label className="text-sm font-semibold text-slate-700">Invoice Number <span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
                                     value={data.invoice_number}
@@ -232,7 +234,7 @@ export default function Edit({ invoice, entities = [], categories = [], attachme
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Issue Date</label>
+                                <label className="text-sm font-semibold text-slate-700">Issue Date <span className="text-red-500">*</span></label>
                                 <input
                                     type="date"
                                     value={data.issue_date}

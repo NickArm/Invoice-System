@@ -10,7 +10,8 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\Process\Process;
-use OpenAI\Laravel\Facades\OpenAI;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ProcessInvoiceAttachment implements ShouldQueue
 {
@@ -18,150 +19,67 @@ class ProcessInvoiceAttachment implements ShouldQueue
 
     public function __construct(
         public Attachment $attachment,
-        public bool $isDraft = false // New parameter for draft mode
+        public bool $isDraft = false
     ) {
     }
 
-    private function buildInstructionPrompt(): string
-    {
-        $user = $this->attachment->user;
-        $company = $user->company;
-
-        $instructions = "Extract invoice data from this document and return as JSON.\n\n";
-
-        // Add company context if available
-        if ($company) {
-            $instructions .= "CONTEXT - This is the recipient company information (DO NOT extract this as supplier):\n";
-            $instructions .= "- Recipient Name: {$company->name}\n";
-            $instructions .= "- Recipient Tax ID: {$company->tax_id}\n";
-            $instructions .= "- Recipient Email: {$company->email}\n";
-            $instructions .= "This information helps you identify which party is the recipient vs the supplier/issuer.\n\n";
-        }
-
-        $instructions .= "CRITICAL RULES:\n";
-        $instructions .= "1. **SUPPLIER (Εκδότης/From)**: The company that ISSUED the invoice (usually at TOP of document)\n";
-        $instructions .= "   - For Greek: Look for 'ΕΚΔΟΤΗΣ', 'ΠΩΛΗΤΗΣ', or company details near the header/logo\n";
-        $instructions .= "   - The supplier name is the OFFICIAL company name (e.g., 'ELECTROINVEST A.E.'), NOT brand names or person names\n";
-        $instructions .= "   - **TAX ID (ΑΦΜ) EXTRACTION - CRITICAL**:\n";
-        $instructions .= "     * Tax ID is EXACTLY 9 digits (rarely 10 for special cases)\n";
-        $instructions .= "     * Look CAREFULLY for the label 'ΑΦΜ:' or 'Α.Φ.Μ.' followed by the number\n";
-        $instructions .= "     * The Tax ID appears NEAR the company name in the header/issuer section\n";
-        $instructions .= "     * DOUBLE-CHECK: Count the digits - must be 9 digits exactly\n";
-        $instructions .= "     * DO NOT confuse with:\n";
-        $instructions .= "       - ΑΡ.ΓΕΜΗ / ΑΡΙΘΜΟΣ ΓΕΜΗ (12+ digits) - this is NOT Tax ID\n";
-        $instructions .= "       - Invoice number\n";
-        $instructions .= "       - Phone numbers\n";
-        $instructions .= "       - Postal codes\n";
-        $instructions .= "     * If you find multiple 9-digit numbers, choose the one labeled 'ΑΦΜ' or closest to company name\n";
-        $instructions .= "     * VERIFY: Re-read the Tax ID field before finalizing to ensure accuracy\n";
-        $instructions .= "   - If you see 'ΕΠΩΝΥΜΙΑ' or 'ΕΤΑΙΡΙΚΗ ΜΟΡΦΗ' near the top, that's the official supplier name\n\n";
-
-        $instructions .= "2. **RECIPIENT (Παραλήπτης/To)**: The company that RECEIVES the invoice\n";
-        $instructions .= "   - For Greek: Look for 'ΠΑΡΑΛΗΠΤΗΣ', 'ΑΓΟΡΑΣΤΗΣ', 'ΠΕΛΑΤΗΣ'\n";
-        $instructions .= "   - This is usually in the middle/lower section labeled 'Στοιχεία Πελάτη' or similar\n";
-        $instructions .= "   - DO NOT use recipient details as supplier details\n\n";
-
-        $instructions .= "3. **DESCRIPTION**: \n";
-        $instructions .= "   - ONLY extract if there's a business activity/description field in the SUPPLIER section (header area, usually top-right)\n";
-        $instructions .= "   - For Greek: Look for 'ΔΡΑΣΤΗΡΙΟΤΗΤΑ', 'ΕΠΑΓΓΕΛΜΑ', 'BUSINESS ACTIVITY' near supplier details\n";
-        $instructions .= "   - DO NOT extract from items/products list\n";
-        $instructions .= "   - DO NOT use recipient's information\n";
-        $instructions .= "   - If no activity/description in supplier section, leave EMPTY (empty string)\n\n";
-
-        $instructions .= "4. For Greek invoices field labels:\n";
-        $instructions .= "   - 'ΑΦΜ' or 'Α.Φ.Μ.' = Tax ID (EXACTLY 9 digits, rarely 10)\n";
-        $instructions .= "   - 'ΑΡ.ΓΕΜΗ' or 'ΑΡΙΘΜΟΣ ΓΕΜΗ' = GEMI number (12+ digits) - DO NOT use as Tax ID\n";
-        $instructions .= "   - 'Α/Α ΤΙΜΟΛΟΓΙΟΥ' or 'ΑΡΙΘΜΟΣ' = Invoice Number\n";
-        $instructions .= "   - 'ΗΜΕΡΟΜΗΝΙΑ ΕΚΔΟΣΗΣ' = Issue Date\n";
-        $instructions .= "   - 'ΣΥΝΟΛΟ' or 'ΤΕΛΙΚΟ ΠΟΣΟ' = Total Amount\n";
-        $instructions .= "   - 'ΦΠΑ' = VAT\n\n";
-
-        $instructions .= "5. Return JSON with fields (MAPPING RULE):\n";
-        $instructions .= "   type: 'income' or 'expense' (default to 'expense' unless you clearly see the user's company as the issuer)\n";
-        $instructions .= "   supplier: {name, tax_id, tax_office, address, city, country, postal_code, phone, mobile, email}\n";
-        $instructions .= "      - IF type = 'expense': supplier = ISSUER (other party)\n";
-        $instructions .= "      - IF type = 'income': supplier = RECIPIENT/BUYER (the other party, NOT the user's own company)\n";
-        $instructions .= "      - Extract ALL available fields from the supplier/issuer section:\n";
-        $instructions .= "        * tax_office: For Greek invoices, look for 'ΔΟΥ' (tax office) - e.g., 'ΔΟΥ ΑΘΗΝΩΝ'\n";
-        $instructions .= "        * address: Full street address (e.g., 'ΛΕΩΦΟΡΟΣ ΚΗΦΙΣΙΑΣ 12')\n";
-        $instructions .= "        * city: City name (e.g., 'ΑΘΗΝΑ', 'ΘΕΣΣΑΛΟΝΙΚΗ')\n";
-        $instructions .= "        * country: Country (usually 'GREECE' or 'ΕΛΛΑΔΑ' for Greek invoices, or extract if stated)\n";
-        $instructions .= "        * postal_code: Postal/ZIP code (e.g., '15231')\n";
-        $instructions .= "        * phone: Primary phone number (look for 'ΤΗΛ:', 'TEL:', 'ΤΗΛΕΦΩΝΟ')\n";
-        $instructions .= "        * mobile: Mobile number (look for 'ΚΙΝΗΤΟ:', 'MOBILE:', 'ΚΙΝ:')\n";
-        $instructions .= "        * email: Email address if present\n";
-        $instructions .= "      - If any field is not found, use null or empty string\n";
-        $instructions .= "   invoice_number: string\n";
-        $instructions .= "   issue_date: YYYY-MM-DD\n";
-        $instructions .= "   due_date: YYYY-MM-DD or null\n";
-        $instructions .= "   currency: EUR, GBP, USD, etc\n";
-        $instructions .= "   vat_percent: number (e.g., 24 for 24%)\n";
-        $instructions .= "   total_gross: number\n";
-        $instructions .= "   total_net: number\n";
-        $instructions .= "   vat_amount: number\n";
-        $instructions .= "   status: 'paid' or 'pending' (if you see 'ΕΠΙ ΠΙΣΤΩΣΗ' or 'ON CREDIT' text, set to 'pending', otherwise 'paid')\n";
-        $instructions .= "   description: string (from supplier section only, or empty string)\n";
-        $instructions .= "   items: [] (always empty array - ignore items)\n";
-        $instructions .= "   confidence: 0-1 (how confident about extraction)";
-
-        return $instructions;
-    }
-
+    /**
+     * Main extraction handler using LlamaIndex AI
+     */
     public function handle(): void
     {
         try {
             $filePath = Storage::path($this->attachment->path);
-            [$base64Content, $mimeType] = $this->prepareFileForOpenAI($filePath, $this->attachment->mime_type);
-            $fileSize = $base64Content ? strlen($base64Content) : 0;
-
             $data = null;
 
-            // Try OpenAI if key is configured and we have image content
-            if (config('openai.api_key') && $base64Content) {
+            // Try LlamaIndex extraction
+            if (config('services.llamaindex.api_key')) {
                 try {
-                    $prompt = $this->buildInstructionPrompt();
-
-                    $response = OpenAI::chat()->create([
-                        'model' => 'gpt-4o',
-                        'messages' => [
-                            [
-                                'role' => 'system',
-                                'content' => 'You are an expert at extracting structured financial data from invoices in multiple languages (English, Greek, etc). Extract all relevant fields and return as valid JSON. Be especially careful with invoice number, dates, and amounts.',
-                            ],
-                            [
-                                'role' => 'user',
-                                'content' => [
-                                    [
-                                        'type' => 'text',
-                                        'text' => $prompt,
-                                    ],
-                                    $this->imageContentPayload($base64Content, $mimeType),
-                                ],
-                            ],
-                        ],
-                        'response_format' => ['type' => 'json_object'],
+                    Log::info('Starting LlamaIndex extraction', [
+                        'attachment_id' => $this->attachment->id,
+                        'api_key_present' => !empty(config('services.llamaindex.api_key')),
+                        'agent_id_present' => !empty(config('services.llamaindex.agent_id')),
                     ]);
 
-                    $data = json_decode($response->choices[0]->message->content, true);
+                    $data = $this->extractWithLlamaIndex($filePath);
 
+                    if ($data) {
+                        Log::info('Invoice extracted via LlamaIndex', [
+                            'attachment_id' => $this->attachment->id,
+                            'supplier' => $data['supplier']['name'] ?? 'Unknown',
+                            'number' => $data['invoice_number'] ?? '',
+                            'confidence' => $data['confidence'] ?? 0,
+                        ]);
+                    }
                 } catch (\Exception $e) {
-                    \Log::warning('OpenAI extraction failed', [
+                    Log::error('LlamaIndex extraction failed', [
                         'attachment_id' => $this->attachment->id,
                         'error' => $e->getMessage(),
+                        'error_class' => get_class($e),
                     ]);
                 }
             } else {
-                \Log::warning('OpenAI extraction skipped', [
+                Log::warning('LlamaIndex extraction skipped - API key missing', [
                     'attachment_id' => $this->attachment->id,
-                    'reason' => $base64Content ? 'API key missing' : 'no image content (conversion failed)',
                 ]);
             }
 
-            // If no data from OpenAI, use empty template
+            // If no data from LlamaIndex, use empty template
             if (!$data) {
                 $data = [
                     'type' => 'expense',
-                    'supplier' => ['name' => '', 'tax_id' => ''],
+                    'supplier' => [
+                        'name' => '',
+                        'tax_id' => '',
+                        'tax_office' => null,
+                        'address' => null,
+                        'city' => null,
+                        'country' => null,
+                        'postal_code' => null,
+                        'phone' => null,
+                        'mobile' => null,
+                        'email' => null
+                    ],
                     'invoice_number' => '',
                     'issue_date' => now()->format('Y-m-d'),
                     'due_date' => null,
@@ -172,34 +90,16 @@ class ProcessInvoiceAttachment implements ShouldQueue
                     'vat_amount' => 0,
                     'status' => 'pending',
                     'description' => '',
-                    'items' => [],
                     'confidence' => 0,
                 ];
-
             }
 
-            $data = $this->normalizeExtraction($data);
-
-            // AFM correction: if AI-afm invalid and we have a PDF, try extracting text via pdftotext
-            $afm = $this->normalizeTaxId($data['supplier']['tax_id'] ?? null);
-            if (!$this->isValidGreekTaxId($afm) && str_starts_with($mimeType, 'application/pdf')) {
-                $pdfText = $this->extractPdfTextWithPoppler($filePath);
-                if ($pdfText) {
-                    $textAfm = $this->extractTaxIdFromText($pdfText);
-                    if ($textAfm && $this->isValidGreekTaxId($textAfm)) {
-                        $data['supplier']['tax_id'] = $textAfm;
-                        \Log::info('AFM corrected via pdftotext fallback', [
-                            'attachment_id' => $this->attachment->id,
-                            'old_afm' => $afm,
-                            'new_afm' => $textAfm,
-                        ]);
-                    }
-                }
-            }
+            $data = $this->sanitizeExtractedData($data);
 
             $this->attachment->update([
                 'extracted_data' => $data,
                 'status' => 'extracted',
+                'needs_review' => ($data['confidence'] ?? 0) < 0.7,
             ]);
 
             // If this is a draft invoice from email, create the invoice with draft status
@@ -215,6 +115,409 @@ class ProcessInvoiceAttachment implements ShouldQueue
             ]);
             throw $e;
         }
+    }
+
+    /**
+     * Extract invoice data using LlamaIndex Cloud API
+     */
+    private function extractWithLlamaIndex(string $filePath): ?array
+    {
+        $apiKey = trim((string)config('services.llamaindex.api_key'));
+        $agentId = trim((string)config('services.llamaindex.agent_id'));
+        $baseUrl = 'https://api.cloud.llamaindex.ai/api/v1';
+
+        if (!$apiKey || !$agentId) {
+            \Log::warning('LlamaIndex configuration missing');
+            return null;
+        }
+
+        // Quick auth check
+        $this->checkLlamaAuth($apiKey, $baseUrl);
+
+        // Step 1: Upload file
+        $fileId = $this->uploadFileToLlamaIndex($filePath, $apiKey, $baseUrl);
+        if (!$fileId) {
+            return null;
+        }
+
+        // Step 2: Create extraction job
+        $jobId = $this->createExtractionJob($fileId, $agentId, $apiKey, $baseUrl);
+        if (!$jobId) {
+            return null;
+        }
+
+        // Step 3: Poll for result (max 60 seconds)
+        $result = $this->pollExtractionResult($jobId, $apiKey, $baseUrl, 60);
+        if (!$result) {
+            return null;
+        }
+
+        // Step 4: Map LlamaIndex response to our format
+        return $this->mapLlamaIndexResponse($result);
+    }
+
+    /**
+     * Upload file to LlamaIndex
+     */
+    private function uploadFileToLlamaIndex(string $filePath, string $apiKey, string $baseUrl): ?string
+    {
+        try {
+            Log::info('Uploading file to LlamaIndex', [
+                'file_path' => $filePath,
+                'file_size' => filesize($filePath),
+                'base_url' => $baseUrl,
+            ]);
+
+            $normalizedKey = $this->normalizeApiKey($apiKey);
+            $response = Http::timeout(60)
+                ->withToken($normalizedKey)
+                ->attach('upload_file', file_get_contents($filePath), basename($filePath))
+                ->post("{$baseUrl}/files");
+
+            Log::info('LlamaIndex file upload response', [
+                'status' => $response->status(),
+                'successful' => $response->successful(),
+                'body' => $response->body(),
+            ]);
+
+            if (!$response->successful()) {
+                Log::error('LlamaIndex file upload failed', [
+                    'status' => $response->status(),
+                    'error' => $response->body(),
+                ]);
+                return null;
+            }
+
+            $data = $response->json();
+            return $data['id'] ?? null;
+
+        } catch (\Exception $e) {
+            Log::error('LlamaIndex file upload exception', [
+                'error' => $e->getMessage(),
+                'class' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Create extraction job
+     */
+    private function createExtractionJob(string $fileId, string $agentId, string $apiKey, string $baseUrl): ?string
+    {
+        try {
+            Log::info('Creating LlamaIndex extraction job', [
+                'file_id' => $fileId,
+                'agent_id' => $agentId,
+            ]);
+
+            $normalizedKey = $this->normalizeApiKey($apiKey);
+            $response = Http::timeout(30)
+                ->withToken($normalizedKey)
+                ->post("{$baseUrl}/extraction/jobs", [
+                    'extraction_agent_id' => $agentId,
+                    'file_id' => $fileId,
+                ]);
+
+            Log::info('LlamaIndex job creation response', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            if (!$response->successful()) {
+                Log::error('LlamaIndex job creation failed', [
+                    'status' => $response->status(),
+                    'error' => $response->body(),
+                ]);
+                return null;
+            }
+
+            $data = $response->json();
+            return $data['id'] ?? null;
+
+        } catch (\Exception $e) {
+            Log::error('LlamaIndex job creation exception', [
+                'error' => $e->getMessage(),
+                'class' => get_class($e),
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Poll for extraction result
+     */
+    private function pollExtractionResult(string $jobId, string $apiKey, string $baseUrl, int $maxSeconds): ?array
+    {
+        $attempts = 0;
+        $maxAttempts = $maxSeconds / 2; // Poll every 2 seconds
+
+        Log::info('Starting LlamaIndex result polling', [
+            'job_id' => $jobId,
+            'max_seconds' => $maxSeconds,
+        ]);
+
+        while ($attempts < $maxAttempts) {
+            try {
+                $normalizedKey = $this->normalizeApiKey($apiKey);
+                $response = Http::timeout(10)
+                    ->withToken($normalizedKey)
+                    ->get("{$baseUrl}/extraction/jobs/{$jobId}/result");
+
+                if ($response->successful()) {
+                    $data = $response->json();
+
+                    Log::info('LlamaIndex poll response', [
+                        'attempt' => $attempts + 1,
+                        'has_data' => !empty($data['data']),
+                        'status' => $response->status(),
+                    ]);
+
+                    // Check if extraction is complete
+                    if (!empty($data['data'])) {
+                        Log::info('LlamaIndex extraction complete', [
+                            'attempts' => $attempts + 1,
+                            'job_id' => $jobId,
+                        ]);
+                        return $data;
+                    }
+                }
+
+                // Wait 2 seconds before next attempt
+                sleep(2);
+                $attempts++;
+
+            } catch (\Exception $e) {
+                Log::debug('LlamaIndex poll attempt failed', [
+                    'attempt' => $attempts + 1,
+                    'error' => $e->getMessage(),
+                ]);
+                sleep(2);
+                $attempts++;
+            }
+        }
+
+        Log::warning('LlamaIndex extraction timeout', [
+            'job_id' => $jobId,
+            'attempts' => $attempts,
+        ]);
+        return null;
+    }
+
+    /**
+     * Build headers for LlamaIndex requests
+     */
+    private function normalizeApiKey(string $apiKey): string
+    {
+        $key = trim($apiKey);
+        $key = preg_replace('/^Bearer\s+/i', '', $key); // strip accidental prefix
+        $key = trim($key, "\"'\t\r\n "); // strip quotes/newlines
+        return $key;
+    }
+
+    /**
+     * Quick auth check: try to list agents to validate token/header
+     */
+    private function checkLlamaAuth(string $apiKey, string $baseUrl): ?bool
+    {
+        try {
+            $normalizedKey = $this->normalizeApiKey($apiKey);
+            $resp = Http::timeout(10)
+                ->withToken($normalizedKey)
+                ->get("{$baseUrl}/extraction/extraction-agents");
+
+            if (!$resp->successful()) {
+                \Log::warning('LlamaIndex auth check failed', [
+                    'status' => $resp->status(),
+                ]);
+            }
+            return $resp->successful();
+        } catch (\Exception $e) {
+            \Log::warning('LlamaIndex auth probe exception', ['error' => $e->getMessage()]);
+            return null;
+        }
+    }
+
+    /**
+     * Map LlamaIndex response to our schema
+     */
+    private function mapLlamaIndexResponse(array $result): array
+    {
+        $data = $result['data'] ?? [];
+        $issuer = $data['issuer'] ?? [];
+        $recipient = $data['recipient'] ?? [];
+        $invoice = $data['invoice'] ?? [];
+        $totals = $data['totals'] ?? [];
+        $lineItems = $data['line_items'] ?? [];
+        $payment = $data['payment'] ?? [];
+        $taxProfile = $data['tax_profile'] ?? [];
+
+        // Determine income/expense by comparing user's tax_id with issuer/recipient
+        $user = $this->attachment->user;
+        $userCompany = $user->company;
+        $type = 'expense'; // Default
+
+        if ($userCompany && $userCompany->tax_id) {
+            $userTaxId = $this->normalizeTaxId($userCompany->tax_id);
+            $issuerTaxId = $this->normalizeTaxId($issuer['tax_id'] ?? null);
+            $recipientTaxId = $this->normalizeTaxId($recipient['tax_id'] ?? null);
+
+            // If user is the issuer → income (we issued the invoice)
+            if ($userTaxId && $userTaxId === $issuerTaxId) {
+                $type = 'income';
+            }
+            // If user is the recipient → expense (we received the invoice)
+            elseif ($userTaxId && $userTaxId === $recipientTaxId) {
+                $type = 'expense';
+            }
+        }
+
+        // Supplier is the other party (issuer if expense, recipient if income)
+        $supplierData = ($type === 'expense') ? $issuer : $recipient;
+        $supplier = [
+            'name' => $supplierData['name'] ?? null,
+            'tax_id' => $supplierData['tax_id'] ?? null,
+            'tax_office' => $supplierData['doy'] ?? null, // ΔΟΥ
+            'address' => $supplierData['address'] ?? null,
+            'city' => $supplierData['city'] ?? null,
+            'country' => $supplierData['country'] ?? null,
+            'postal_code' => $supplierData['postal_code'] ?? null,
+            'phone' => $supplierData['phone'] ?? null,
+            'mobile' => null,
+            'email' => $supplierData['email'] ?? null,
+        ];
+
+        // Calculate VAT percent from line items or tax_profile breakdown
+        $vatPercent = 24; // Default
+
+        // If VAT not applicable (39α), force 0
+        if (array_key_exists('vat_applicable', $taxProfile) && $taxProfile['vat_applicable'] === false) {
+            $vatPercent = 0;
+        }
+
+        // Use most common VAT rate from line items (count manually as vat_rate is float)
+        if (!empty($lineItems)) {
+            $vatRateCount = [];
+            foreach ($lineItems as $item) {
+                $rate = floatval($item['vat_rate'] ?? 0);
+                $rateKey = (string)$rate;
+                $vatRateCount[$rateKey] = ($vatRateCount[$rateKey] ?? 0) + 1;
+            }
+            if (!empty($vatRateCount)) {
+                arsort($vatRateCount);
+                $mostCommonRate = array_key_first($vatRateCount);
+                $vatPercent = floatval($mostCommonRate);
+            }
+        } elseif (!empty($taxProfile['vat_breakdown'])) {
+            // Use first VAT rate from breakdown
+            $vatPercent = floatval($taxProfile['vat_breakdown'][0]['vat_rate'] ?? $vatPercent);
+        }
+
+        // If totals show zero VAT, prefer 0
+        if (($totals['total_vat'] ?? null) !== null && floatval($totals['total_vat']) == 0) {
+            $vatPercent = 0;
+        }
+
+        // Parse date (new format is Y-m-d already)
+        $issueDate = $this->parseGreekDate($invoice['invoice_date'] ?? null);
+
+        // Build invoice number with series if present
+        $invoiceNumber = trim($invoice['invoice_number'] ?? '');
+        if (!empty($invoice['series'])) {
+            $invoiceNumber = trim($invoice['series']) . '-' . $invoiceNumber;
+        }
+
+        // Map payment status
+        $status = 'pending'; // Default
+        if (!empty($payment['status'])) {
+            $status = ($payment['status'] === 'paid') ? 'paid' : 'pending';
+        }
+
+        // Calculate confidence
+        $confidence = $this->calculateConfidence($supplierData, $invoice);
+
+        return [
+            'type' => $type,
+            'supplier' => $supplier,
+            'invoice_number' => $invoiceNumber,
+            'issue_date' => $issueDate,
+            'currency' => strtoupper($invoice['currency'] ?? 'EUR'),
+            'vat_percent' => $vatPercent,
+            'total_gross' => floatval($totals['total_gross'] ?? 0),
+            'total_net' => floatval($totals['total_net'] ?? 0),
+            'vat_amount' => floatval($totals['total_vat'] ?? 0),
+            'status' => $status,
+            'description' => '',
+            'confidence' => $confidence,
+        ];
+    }
+
+    /**
+     * Parse date to Y-m-d format
+     */
+    private function parseGreekDate(?string $date): string
+    {
+        if (!$date) {
+            return now()->format('Y-m-d');
+        }
+
+        try {
+            // Try d/m/Y format (legacy)
+            if (preg_match('#^(\d{1,2})/(\d{1,2})/(\d{4})$#', $date, $matches)) {
+                $day = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+                $month = str_pad($matches[2], 2, '0', STR_PAD_LEFT);
+                $year = $matches[3];
+                return "{$year}-{$month}-{$day}";
+            }
+
+            // LlamaIndex returns Y-m-d already, but parse to validate
+            return \Carbon\Carbon::parse($date)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return now()->format('Y-m-d');
+        }
+    }
+
+    /**
+     * Calculate confidence score based on data completeness
+     */
+    private function calculateConfidence(array $issuer, array $invoice): float
+    {
+        $score = 0;
+        $total = 0;
+
+        // Critical fields (higher weight)
+        $criticalFields = [
+            !empty($issuer['name']) => 0.2,
+            !empty($issuer['tax_id']) && strlen($issuer['tax_id']) >= 7 => 0.2,
+            !empty($invoice['invoice_number']) => 0.2,
+            !empty($invoice['total_gross']) && $invoice['total_gross'] > 0 => 0.2,
+        ];
+
+        foreach ($criticalFields as $exists => $weight) {
+            $total += $weight;
+            if ($exists) {
+                $score += $weight;
+            }
+        }
+
+        // Optional fields (lower weight)
+        $optionalFields = [
+            !empty($issuer['address']) => 0.05,
+            !empty($issuer['city']) => 0.05,
+            !empty($issuer['email']) => 0.05,
+            !empty($invoice['invoice_date']) => 0.05,
+        ];
+
+        foreach ($optionalFields as $exists => $weight) {
+            $total += $weight;
+            if ($exists) {
+                $score += $weight;
+            }
+        }
+
+        return round($score / $total, 2);
     }
 
     /**
@@ -241,7 +544,6 @@ class ProcessInvoiceAttachment implements ShouldQueue
                         'attachment_id' => $this->attachment->id,
                     ]);
 
-                    // Mark attachment as processed but don't create duplicate invoice
                     $this->attachment->update(['status' => 'duplicate']);
                     return;
                 }
@@ -265,7 +567,6 @@ class ProcessInvoiceAttachment implements ShouldQueue
 
             $invoice = Invoice::create($invoiceData);
 
-            // Attach the attachment to the invoice
             $this->attachment->invoice_id = $invoice->id;
             $this->attachment->save();
 
@@ -285,35 +586,80 @@ class ProcessInvoiceAttachment implements ShouldQueue
     }
 
     /**
-     * Force safer defaults and normalize extracted payload
+     * Simple sanitization without auto-corrections
+     * Just clean up, trim, and ensure basic structure
      */
-    private function normalizeExtraction(array $data): array
+    private function sanitizeExtractedData(array $data): array
     {
-        $company = $this->attachment->user?->company;
-        $companyTax = $company?->tax_id ? $this->normalizeTaxId($company->tax_id) : null;
+        // Ensure all required keys exist
+        $data = array_merge([
+            'type' => 'expense',
+            'supplier' => [],
+            'invoice_number' => '',
+            'issue_date' => now()->format('Y-m-d'),
+            'currency' => 'EUR',
+            'vat_percent' => 24,
+            'total_gross' => 0,
+            'total_net' => 0,
+            'vat_amount' => 0,
+            'status' => 'pending',
+            'description' => '',
+            'confidence' => 0.5,
+        ], $data);
 
-        // Default type to expense for email imports unless we are clearly the issuer
-        $extractedSupplierTax = $data['supplier']['tax_id'] ?? null;
-        $normalizedSupplierTax = $extractedSupplierTax ? $this->normalizeTaxId($extractedSupplierTax) : null;
+        // Ensure supplier is array
+        if (!is_array($data['supplier'])) {
+            $data['supplier'] = [];
+        }
 
-        $type = $data['type'] ?? 'expense';
-        if ($this->isDraft) {
-            $type = 'expense';
-            if ($companyTax && $normalizedSupplierTax && $companyTax === $normalizedSupplierTax) {
-                $type = 'income';
+        // Basic trimming
+        $data['invoice_number'] = trim((string)($data['invoice_number'] ?? ''));
+        $data['description'] = trim((string)($data['description'] ?? ''));
+        $data['type'] = in_array($data['type'], ['income', 'expense']) ? $data['type'] : 'expense';
+        $data['status'] = in_array($data['status'], ['paid', 'pending']) ? $data['status'] : 'pending';
+        $data['currency'] = strtoupper(trim((string)($data['currency'] ?? 'EUR')));
+
+        // Supplier field cleanup
+        foreach (['name', 'tax_id', 'tax_office', 'address', 'city', 'country', 'postal_code', 'phone', 'mobile', 'email'] as $field) {
+            $data['supplier'][$field] = trim((string)($data['supplier'][$field] ?? '')) ?: null;
+        }
+
+        // Validate tax ID format - clear if obviously invalid (too long/short, non-numeric)
+        if (!empty($data['supplier']['tax_id'])) {
+            $normalized = $this->normalizeTaxId($data['supplier']['tax_id']);
+            // Only reject if format is completely wrong (not 9 digits for Greek, or obviously not a tax ID)
+            if (!$normalized || strlen($normalized) < 7 || strlen($normalized) > 12) {
+                \Log::warning('Invalid tax ID format cleared during extraction', [
+                    'attachment_id' => $this->attachment->id,
+                    'invalid_tax_id' => $data['supplier']['tax_id'],
+                ]);
+                $data['supplier']['tax_id'] = null;
             }
         }
 
-        $data['type'] = in_array($type, ['income', 'expense']) ? $type : 'expense';
+        // Cast numbers
+        $data['vat_percent'] = floatval($data['vat_percent'] ?? 24);
+        $data['total_gross'] = floatval($data['total_gross'] ?? 0);
+        $data['total_net'] = floatval($data['total_net'] ?? 0);
+        $data['vat_amount'] = floatval($data['vat_amount'] ?? 0);
+        $data['confidence'] = max(0, min(1, floatval($data['confidence'] ?? 0.5)));
 
-        // Normalize dates to Y-m-d if possible
-        foreach (['issue_date', 'due_date'] as $dateKey) {
-            if (!empty($data[$dateKey])) {
-                try {
-                    $data[$dateKey] = \Carbon\Carbon::parse($data[$dateKey])->format('Y-m-d');
-                } catch (\Exception $e) {
-                    $data[$dateKey] = $dateKey === 'issue_date' ? now()->format('Y-m-d') : null;
-                }
+        // Only validate issue_date format, don't auto-correct
+        try {
+            if (!empty($data['issue_date'])) {
+                $data['issue_date'] = \Carbon\Carbon::parse($data['issue_date'])->format('Y-m-d');
+            } else {
+                $data['issue_date'] = now()->format('Y-m-d');
+            }
+        } catch (\Exception $e) {
+            $data['issue_date'] = now()->format('Y-m-d');
+        }
+
+        // Remove any extra keys not in schema
+        $allowed = ['type', 'supplier', 'invoice_number', 'issue_date', 'currency', 'vat_percent', 'total_gross', 'total_net', 'vat_amount', 'status', 'description', 'confidence'];
+        foreach (array_keys($data) as $key) {
+            if (!in_array($key, $allowed)) {
+                unset($data[$key]);
             }
         }
 
@@ -329,42 +675,38 @@ class ProcessInvoiceAttachment implements ShouldQueue
         $taxId = $this->normalizeTaxId($supplier['tax_id'] ?? null);
         $name = trim($supplier['name'] ?? '') ?: 'Unknown';
 
-            // First try to find by tax ID
-            if ($taxId) {
-                $existing = BusinessEntity::where('user_id', $this->attachment->user_id)
-                    ->where('tax_id', $taxId)
-                    ->first();
-
-                if ($existing) {
-                    return $existing;
-                }
-            }
-
-            // Try to find by name
-            $existingByName = BusinessEntity::where('user_id', $this->attachment->user_id)
-                ->whereRaw('LOWER(name) = ?', [strtolower($name)])
+        // First try to find by tax ID
+        if ($taxId) {
+            $existing = BusinessEntity::where('user_id', $this->attachment->user_id)
+                ->where('tax_id', $taxId)
                 ->first();
 
-            if ($existingByName) {
-                // Check if Tax IDs differ (potential OCR error)
-                if ($taxId && $existingByName->tax_id && $taxId !== $existingByName->tax_id) {
-                    \Log::warning('Email import: Same company name with different Tax ID', [
-                        'attachment_id' => $this->attachment->id,
-                        'company_name' => $name,
-                        'existing_tax_id' => $existingByName->tax_id,
-                        'extracted_tax_id' => $taxId,
-                        'user_id' => $this->attachment->user_id,
-                    ]);
-
-                    // Use existing entity but log the discrepancy
-                    // User can manually review draft invoices
-                    return $existingByName;
-                }
-
-                return $existingByName;
+            if ($existing) {
+                return $existing;
+            }
         }
 
-            // Create new entity
+        // Try to find by name
+        $existingByName = BusinessEntity::where('user_id', $this->attachment->user_id)
+            ->whereRaw('LOWER(name) = ?', [strtolower($name)])
+            ->first();
+
+        if ($existingByName) {
+            // Check if Tax IDs differ (potential OCR error)
+            if ($taxId && $existingByName->tax_id && $taxId !== $existingByName->tax_id) {
+                \Log::warning('Email import: Same company name with different Tax ID', [
+                    'attachment_id' => $this->attachment->id,
+                    'company_name' => $name,
+                    'existing_tax_id' => $existingByName->tax_id,
+                    'extracted_tax_id' => $taxId,
+                    'user_id' => $this->attachment->user_id,
+                ]);
+            }
+
+            return $existingByName;
+        }
+
+        // Create new entity
         return BusinessEntity::create([
             'user_id' => $this->attachment->user_id,
             'name' => $name,
@@ -389,237 +731,5 @@ class ProcessInvoiceAttachment implements ShouldQueue
 
         $digits = preg_replace('/\D+/', '', $value);
         return $digits ?: null;
-    }
-
-    private function prepareFileForOpenAI(string $filePath, string $mimeType): array
-    {
-        // If PDF, try to convert first page to PNG for Vision API
-        if (str_starts_with($mimeType, 'application/pdf')) {
-            try {
-                if (!extension_loaded('imagick')) {
-                    \Log::warning('Imagick not available; cannot convert PDF to image', ['attachment_id' => $this->attachment->id]);
-                    // Try CLI fallback (pdftoppm/poppler) when Imagick is missing
-                    $fallback = $this->convertPdfWithPoppler($filePath);
-                    if ($fallback) {
-                        return [$fallback, 'image/png'];
-                    }
-
-                    return [null, $mimeType];
-                }
-
-                $imagick = new \Imagick();
-                $imagick->setResolution(200, 200);
-                $imagick->readImage($filePath.'[0]'); // first page
-                $imagick->setImageFormat('png');
-                $pngData = $imagick->getImageBlob();
-                $imagick->clear();
-                $imagick->destroy();
-
-                return [base64_encode($pngData), 'image/png'];
-            } catch (\Exception $e) {
-                \Log::warning('PDF to image conversion failed', [
-                    'attachment_id' => $this->attachment->id,
-                    'error' => $e->getMessage(),
-                ]);
-                // Try CLI fallback (pdftoppm/poppler) when Imagick conversion fails
-                $fallback = $this->convertPdfWithPoppler($filePath);
-                if ($fallback) {
-                    return [$fallback, 'image/png'];
-                }
-
-                return [null, $mimeType];
-            }
-        }
-
-        // For image files, return base64 directly
-        return [base64_encode(file_get_contents($filePath)), $mimeType];
-    }
-
-    // Fallback conversion for PDF->PNG using poppler's pdftoppm if Imagick is unavailable.
-    private function convertPdfWithPoppler(string $filePath): ?string
-    {
-        $tempBase = tempnam(sys_get_temp_dir(), 'pdf2img_');
-        if ($tempBase === false) {
-            \Log::warning('pdftoppm fallback failed: temp file not created', ['attachment_id' => $this->attachment->id]);
-            return null;
-        }
-
-        // pdftoppm adds "-1" suffix for the first page (e.g., "base-1.png")
-        $outputPng = $tempBase.'-1.png';
-
-        // Try to locate pdftoppm in common Windows paths
-        $pdftoppmBinary = $this->findPdftoppm();
-        if (!$pdftoppmBinary) {
-            \Log::warning('pdftoppm binary not found in PATH', ['attachment_id' => $this->attachment->id]);
-            @unlink($tempBase);
-            return null;
-        }
-
-        $process = new Process([$pdftoppmBinary, '-f', '1', '-l', '1', '-png', $filePath, $tempBase]);
-        $process->setTimeout(20);
-        $process->run();
-
-        if (!$process->isSuccessful()) {
-            \Log::warning('pdftoppm conversion failed', [
-                'attachment_id' => $this->attachment->id,
-                'exit_code' => $process->getExitCode(),
-                'error' => $process->getErrorOutput(),
-            ]);
-            @unlink($outputPng);
-            @unlink($tempBase);
-            return null;
-        }
-
-        if (!file_exists($outputPng)) {
-            \Log::warning('pdftoppm did not produce PNG output', ['attachment_id' => $this->attachment->id, 'expected' => $outputPng]);
-            @unlink($tempBase);
-            return null;
-        }
-    $pngData = base64_encode(file_get_contents($outputPng));
-
-        // Cleanup temp files
-        @unlink($outputPng);
-        @unlink($tempBase);
-
-        return $pngData ?: null;
-    }
-
-    // Helper to find pdftoppm binary in PATH or common Windows locations
-    private function findPdftoppm(): ?string
-    {
-        // Try common Windows installation paths (check first since PATH may not be updated in queue worker)
-        $commonPaths = [
-            'C:\\xampp82\\poppler\\Library\\bin\\pdftoppm.exe',
-            'C:\\Program Files\\Poppler\\bin\\pdftoppm.exe',
-            'C:\\Program Files (x86)\\Poppler\\bin\\pdftoppm.exe',
-            'C:\\tools\\poppler\\bin\\pdftoppm.exe',
-        ];
-
-        foreach ($commonPaths as $path) {
-            if (file_exists($path)) {
-                return $path;
-            }
-        }
-
-        // Try direct command (if in PATH)
-        $process = new Process(['where', 'pdftoppm']);
-        $process->run();
-        if ($process->isSuccessful()) {
-            $path = trim($process->getOutput());
-            if (!empty($path)) {
-                return $path;
-            }
-        }
-
-        return null;
-    }
-
-    // Extract full text from PDF using poppler's pdftotext
-    private function extractPdfTextWithPoppler(string $filePath): ?string
-    {
-        $pdftotext = $this->findPdftotext();
-        if (!$pdftotext) {
-            \Log::debug('pdftotext binary not found');
-            return null;
-        }
-
-        $tempTxt = tempnam(sys_get_temp_dir(), 'pdf2txt_');
-        if ($tempTxt === false) {
-            return null;
-        }
-
-        // -layout keeps visual layout which helps with labels like ΑΦΜ
-        $process = new Process([$pdftotext, '-layout', $filePath, $tempTxt]);
-        $process->setTimeout(20);
-        $process->run();
-
-        if (!$process->isSuccessful()) {
-            \Log::debug('pdftotext failed', ['exit' => $process->getExitCode(), 'err' => $process->getErrorOutput()]);
-            @unlink($tempTxt);
-            return null;
-        }
-
-        $text = @file_get_contents($tempTxt) ?: null;
-        @unlink($tempTxt);
-        return $text;
-    }
-
-    // Locate pdftotext on Windows
-    private function findPdftotext(): ?string
-    {
-        $commonPaths = [
-            'C:\\xampp82\\poppler\\Library\\bin\\pdftotext.exe',
-            'C:\\Program Files\\Poppler\\bin\\pdftotext.exe',
-            'C:\\Program Files (x86)\\Poppler\\bin\\pdftotext.exe',
-            'C:\\tools\\poppler\\bin\\pdftotext.exe',
-        ];
-
-        foreach ($commonPaths as $path) {
-            if (file_exists($path)) {
-                return $path;
-            }
-        }
-
-        $process = new Process(['where', 'pdftotext']);
-        $process->run();
-        if ($process->isSuccessful()) {
-            $path = trim($process->getOutput());
-            if (!empty($path)) {
-                return $path;
-            }
-        }
-        return null;
-    }
-
-    // Extract AFM value from text using Greek labels and checksum validation
-    private function extractTaxIdFromText(string $text): ?string
-    {
-        // Try explicit ΑΦΜ label first
-        $pattern = '/Α\s*\.?\s*Φ\s*\.?\s*Μ\s*[:\-]?\s*(\d{9,10})/u';
-        if (preg_match($pattern, $text, $m)) {
-            $candidate = $this->normalizeTaxId($m[1]);
-            if ($this->isValidGreekTaxId($candidate)) {
-                return $candidate;
-            }
-        }
-
-        // Fallback: scan for any 9-10 digit sequences and pick the first valid by checksum
-        if (preg_match_all('/\b(\d{9,10})\b/u', $text, $matches)) {
-            foreach ($matches[1] as $num) {
-                $candidate = $this->normalizeTaxId($num);
-                if ($this->isValidGreekTaxId($candidate)) {
-                    return $candidate;
-                }
-            }
-        }
-        return null;
-    }
-
-
-    // Validate Greek AFM using checksum (first 8 digits weighted by powers of 2, result mod 11, then mod 10)
-    private function isValidGreekTaxId(?string $afm): bool
-    {
-        if (!$afm) return false;
-        if (!preg_match('/^\d{9}$/', $afm)) return false;
-        $sum = 0;
-        // weights: 2,4,8,16,32,64,128,256 for digits 1..8
-        for ($i = 0; $i < 8; $i++) {
-            $digit = intval($afm[$i]);
-            $weight = 1 << ($i + 1); // 2^(i+1)
-            $sum += $digit * $weight;
-        }
-        $remainder = $sum % 11;
-        $check = $remainder % 10;
-        return intval($afm[8]) === $check;
-    }
-
-    private function imageContentPayload(?string $base64Content, string $mimeType): array
-    {
-        return [
-            'type' => 'image_url',
-            'image_url' => [
-                'url' => $base64Content ? "data:{$mimeType};base64,{$base64Content}" : '',
-            ],
-        ];
     }
 }
