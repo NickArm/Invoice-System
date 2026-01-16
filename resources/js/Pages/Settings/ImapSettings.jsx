@@ -75,7 +75,7 @@ export default function ImapSettings({ auth, settings }) {
 
             <div className="py-12">
                 <div className="max-w-3xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg dark:bg-slate-900">
                         <div className="p-6 text-gray-900">
                             <div className="mb-6">
                                 <h3 className="text-lg font-medium text-gray-900">Automatic Invoice Import from Email</h3>
@@ -111,7 +111,7 @@ export default function ImapSettings({ auth, settings }) {
                                         placeholder="e.g., imap.gmail.com or imap.zoho.com"
                                     />
                                     <InputError message={errors.imap_host} className="mt-2" />
-                                    <p className="mt-1 text-xs text-gray-500">
+                                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                                         Example: imap.gmail.com, imap.zoho.com, outlook.office365.com
                                     </p>
                                 </div>
@@ -170,7 +170,7 @@ export default function ImapSettings({ auth, settings }) {
                                         placeholder={settings.imap_password ? '••••••••' : 'Enter password'}
                                     />
                                     <InputError message={errors.imap_password} className="mt-2" />
-                                    <p className="mt-1 text-xs text-gray-500">
+                                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                                         Leave blank to keep existing password. For Gmail, use an App Password.
                                     </p>
                                 </div>
@@ -190,7 +190,7 @@ export default function ImapSettings({ auth, settings }) {
                                             placeholder="e.g., Invoice"
                                         />
                                         <InputError message={errors.imap_subject_filter} className="mt-2" />
-                                        <p className="mt-1 text-xs text-gray-500">
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                                             Only process emails with this text in the subject line. Leave empty to process all emails.
                                         </p>
                                     </div>

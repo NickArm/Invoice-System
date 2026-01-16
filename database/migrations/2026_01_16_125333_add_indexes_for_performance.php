@@ -22,7 +22,7 @@ return new class extends Migration
 
         // Optimize business_entities table queries
         // Note: user_id index and unique constraint likely exist already
-        
+
         // Optimize attachments table queries
         Schema::table('attachments', function (Blueprint $table) {
             // For user + status filtering

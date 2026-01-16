@@ -8,9 +8,9 @@ const formatCurrency = (value, currency = 'EUR') => {
 
 const statusBadge = (status) => {
     const normalized = (status || '').toLowerCase();
-    if (normalized === 'paid') return 'bg-emerald-100 text-emerald-700';
-    if (normalized === 'pending') return 'bg-amber-100 text-amber-700';
-    return 'bg-slate-100 text-slate-700';
+    if (normalized === 'paid') return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400';
+    if (normalized === 'pending') return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400';
+    return 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300';
 };
 
 export default function Dashboard({ metrics, chartData = [], latestInvoices = [], period = 'this_year', periodOptions = [], analytics = {}, tab = 'overview' }) {

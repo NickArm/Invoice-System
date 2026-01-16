@@ -36,19 +36,19 @@ export default function Create({ entities = [], categories = [] }) {
     };
 
     return (
-        <AuthenticatedLayout header={<h2 className="text-xl font-semibold leading-tight text-slate-800">New Invoice</h2>}>
+        <AuthenticatedLayout header={<h2 className="text-xl font-semibold leading-tight text-slate-800 dark:text-slate-100">New Invoice</h2>}>
             <Head title="Create Invoice" />
 
             <div className="space-y-6">
-                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <div className="mb-6 flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-slate-500">Add a new invoice</p>
-                            <h3 className="text-2xl font-semibold text-slate-900">Invoice details</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Add a new invoice</p>
+                            <h3 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Invoice details</h3>
                         </div>
                         <Link
                             href={route('invoices.index')}
-                            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-primary-200 hover:text-primary-700"
+                            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-primary-200 hover:text-primary-700 dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary-400 dark:hover:text-primary-400"
                         >
                             Cancel
                         </Link>
@@ -57,7 +57,7 @@ export default function Create({ entities = [], categories = [] }) {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Type</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Type</label>
                                 <div className="flex gap-2">
                                     <button
                                         type="button"
@@ -86,7 +86,7 @@ export default function Create({ entities = [], categories = [] }) {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Status</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Status</label>
                                 <div className="flex gap-2">
                                     <button
                                         type="button"
@@ -117,11 +117,11 @@ export default function Create({ entities = [], categories = [] }) {
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Business Entity</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Business Entity</label>
                                 <select
                                     value={data.entity_id}
                                     onChange={(e) => setData('entity_id', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-primary-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                 >
                                     <option value="">Select existing</option>
                                     {entities.map((entity) => (
@@ -132,13 +132,13 @@ export default function Create({ entities = [], categories = [] }) {
                                 </select>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Or set new entity name</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Or set new entity name</label>
                                 <input
                                     type="text"
                                     value={data.supplier_name}
                                     onChange={(e) => setData('supplier_name', e.target.value)}
                                     placeholder="Name"
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                 />
                                 {errors.supplier_name && <p className="text-sm text-red-600">{errors.supplier_name}</p>}
                             </div>
@@ -146,32 +146,32 @@ export default function Create({ entities = [], categories = [] }) {
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Tax ID</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Tax ID</label>
                                 <input
                                     type="text"
                                     value={data.supplier_tax_id}
                                     onChange={(e) => setData('supplier_tax_id', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                 />
                                 {errors.supplier_tax_id && <p className="text-sm text-red-600">{errors.supplier_tax_id}</p>}
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Email</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Email</label>
                                 <input
                                     type="email"
                                     value={data.supplier_email}
                                     onChange={(e) => setData('supplier_email', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                 />
                                 {errors.supplier_email && <p className="text-sm text-red-600">{errors.supplier_email}</p>}
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Invoice Number</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Invoice Number</label>
                                 <input
                                     type="text"
                                     value={data.invoice_number}
                                     onChange={(e) => setData('invoice_number', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                 />
                                 {errors.invoice_number && <p className="text-sm text-red-600">{errors.invoice_number}</p>}
                             </div>
@@ -179,31 +179,31 @@ export default function Create({ entities = [], categories = [] }) {
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Issue Date</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Issue Date</label>
                                 <input
                                     type="date"
                                     value={data.issue_date}
                                     onChange={(e) => setData('issue_date', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                 />
                                 {errors.issue_date && <p className="text-sm text-red-600">{errors.issue_date}</p>}
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Due Date</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Due Date</label>
                                 <input
                                     type="date"
                                     value={data.due_date}
                                     onChange={(e) => setData('due_date', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                 />
                                 {errors.due_date && <p className="text-sm text-red-600">{errors.due_date}</p>}
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Currency</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Currency</label>
                                 <select
                                     value={data.currency}
                                     onChange={(e) => setData('currency', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                 >
                                     <option value="EUR">EUR (€)</option>
                                     <option value="USD">USD ($)</option>
@@ -215,58 +215,58 @@ export default function Create({ entities = [], categories = [] }) {
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Total Gross</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Total Gross</label>
                                 <input
                                     type="number"
                                     step="0.01"
                                     value={data.total_gross}
                                     onChange={(e) => setData('total_gross', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                 />
                                 {errors.total_gross && <p className="text-sm text-red-600">{errors.total_gross}</p>}
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Total Net</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Total Net</label>
                                 <input
                                     type="number"
                                     step="0.01"
                                     value={data.total_net}
                                     onChange={(e) => setData('total_net', e.target.value)}
                                     placeholder="Optional"
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                 />
                                 {errors.total_net && <p className="text-sm text-red-600">{errors.total_net}</p>}
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">VAT %</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">VAT %</label>
                                 <input
                                     type="number"
                                     step="0.01"
                                     value={data.vat_percent}
                                     onChange={(e) => setData('vat_percent', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                 />
                                 {errors.vat_percent && <p className="text-sm text-red-600">{errors.vat_percent}</p>}
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">VAT Amount</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">VAT Amount</label>
                                 <input
                                     type="number"
                                     step="0.01"
                                     value={data.vat_amount}
                                     onChange={(e) => setData('vat_amount', e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                 />
                                 {errors.vat_amount && <p className="text-sm text-red-600">{errors.vat_amount}</p>}
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-700">Category</label>
+                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Category</label>
                             <select
                                 value={data.category_id}
                                 onChange={(e) => setData('category_id', e.target.value)}
-                                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-primary-300 focus:outline-none"
+                                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                             >
                                 <option value="">No category</option>
                                 {categories.map((cat) => (
@@ -279,12 +279,12 @@ export default function Create({ entities = [], categories = [] }) {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-700">Description</label>
+                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Description</label>
                             <textarea
                                 rows={3}
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}
-                                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                             />
                             {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
                         </div>
@@ -292,7 +292,7 @@ export default function Create({ entities = [], categories = [] }) {
                         <div className="flex items-center justify-end gap-3">
                             <Link
                                 href={route('invoices.index')}
-                                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-primary-200 hover:text-primary-700"
+                                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-primary-200 hover:text-primary-700 dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary-400 dark:hover:text-primary-400"
                             >
                                 Cancel
                             </Link>

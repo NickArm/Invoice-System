@@ -129,7 +129,7 @@ export default function AadeSettings({ settings }) {
                 <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
                         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 dark:text-white">
                                 AADE Integration Settings
                             </h2>
                             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -191,7 +191,7 @@ export default function AadeSettings({ settings }) {
                                                 {errors.vat_registry_password && (
                                                     <p className="mt-2 text-sm text-red-600">{errors.vat_registry_password}</p>
                                                 )}
-                                                <p className="mt-1 text-xs text-gray-500">
+                                                <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                                                     Leave empty to keep current password
                                                 </p>
                                             </div>
@@ -236,7 +236,7 @@ export default function AadeSettings({ settings }) {
                                                 {errors.mydata_subscription_key && (
                                                     <p className="mt-2 text-sm text-red-600">{errors.mydata_subscription_key}</p>
                                                 )}
-                                                <p className="mt-1 text-xs text-gray-500">
+                                                <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                                                     Find this in your myDATA portal subscriptions
                                                 </p>
                                             </div>
@@ -297,7 +297,7 @@ export default function AadeSettings({ settings }) {
                                                     placeholder="e.g., 123456789"
                                                     maxLength="20"
                                                 />
-                                                <p className="mt-1 text-xs text-gray-500">
+                                                <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                                                     Enter a Greek tax ID (ΑΦΜ) to validate using VAT Registry
                                                 </p>
                                             </div>

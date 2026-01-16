@@ -2,6 +2,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import ThemeToggle from '@/Components/ThemeToggle';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -10,8 +11,8 @@ export default function AuthenticatedLayout({ header, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
 
     return (
-        <div className="min-h-screen bg-[#f5f7fb] text-gray-800">
-            <nav className="sticky top-0 z-20 border-b border-slate-200/60 bg-white/90 backdrop-blur">
+        <div className="min-h-screen bg-[#f5f7fb] text-gray-800 dark:bg-slate-950 dark:text-slate-200">
+            <nav className="sticky top-0 z-20 border-b border-slate-200/60 bg-white/90 backdrop-blur dark:border-slate-700/60 dark:bg-slate-900/90">
                 <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-8">
                         <Link href="/" className="flex items-center gap-2">
@@ -34,11 +35,12 @@ export default function AuthenticatedLayout({ header, children }) {
                     </div>
 
                     <div className="hidden items-center gap-3 sm:flex">
+                        <ThemeToggle />
                         <div className="relative">
                             <Dropdown>
                                 <Dropdown.Trigger>
-                                    <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-primary-200 hover:text-primary-700">
-                                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-50 text-primary-600">
+                                    <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-primary-200 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-primary-400 dark:hover:text-primary-400">
+                                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-50 text-primary-600 dark:bg-primary-900/40 dark:text-primary-400">
                                             {user.name?.charAt(0) ?? '?'}
                                         </span>
                                         <span>{user.name}</span>
@@ -168,14 +170,31 @@ export default function AuthenticatedLayout({ header, children }) {
             </nav>
 
             {header && (
-                <header className="border-b border-slate-200 bg-white/80 backdrop-blur">
+                <header className="border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-700 dark:bg-slate-900/80">
                     <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 sm:px-6">
                         {header}
                     </div>
                 </header>
             )}
 
-            <main className="mx-auto max-w-6xl pb-10 pt-6">{children}</main>
+            <main className="mx-auto max-w-6xl pb-10 pt-6 dark:bg-slate-950">{children}</main>
+
+            <footer className="border-t border-slate-200 bg-white/80 backdrop-blur py-2 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-400">
+                <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 sm:flex-row sm:px-6">
+                    <span className=" text-slate-700 dark:text-slate-200">Invaice</span>
+                    <span className="text-slate-600 dark:text-slate-400">
+                        Developed by{' '}
+                        <a
+                            href="https://armenisnick.gr"
+                            target="_blank"
+                            rel="noreferrer"
+                            className=" text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                        >
+                            Nick Armenis
+                        </a>
+                    </span>
+                </div>
+            </footer>
         </div>
     );
 }

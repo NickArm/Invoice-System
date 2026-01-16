@@ -65,7 +65,7 @@ export default function InvoiceCategories({ categories = [] }) {
                     aria-label={`Choose ${color}`}
                 />
             ))}
-            <label className="flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-primary-200">
+            <label className="flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-primary-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-primary-400">
                 Custom
                 <input
                     type="color"
@@ -78,32 +78,32 @@ export default function InvoiceCategories({ categories = [] }) {
     );
 
     return (
-        <AuthenticatedLayout header={<h2 className="text-xl font-semibold leading-tight text-slate-800">Invoice Categories</h2>}>
+        <AuthenticatedLayout header={<h2 className="text-xl font-semibold leading-tight text-slate-800 dark:text-slate-100">Invoice Categories</h2>}>
             <Head title="Invoice Categories" />
 
             <div className="grid gap-6 lg:grid-cols-[1fr,1.2fr]">
                 <div className="space-y-4">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                         <div className="mb-4">
-                            <p className="text-sm text-slate-500">Organize invoices with custom labels</p>
-                            <h3 className="text-2xl font-semibold text-slate-900">Create category</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Organize invoices with custom labels</p>
+                            <h3 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Create category</h3>
                         </div>
                         <form className="space-y-4" onSubmit={submitCreate}>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">Name</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Name</label>
                                 <input
                                     type="text"
                                     value={createForm.data.name}
                                     onChange={(e) => createForm.setData('name', e.target.value)}
                                     placeholder="e.g. Marketing, Office"
-                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                 />
                                 {createForm.errors.name && (
                                     <p className="text-sm text-red-600">{createForm.errors.name}</p>
                                 )}
                             </div>
                             <div className="space-y-3">
-                                <label className="text-sm font-semibold text-slate-700">Color</label>
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Color</label>
                                 {renderSwatches(createForm.data.color, (color) => createForm.setData('color', color))}
                                 {createForm.errors.color && (
                                     <p className="text-sm text-red-600">{createForm.errors.color}</p>
@@ -123,19 +123,19 @@ export default function InvoiceCategories({ categories = [] }) {
                 </div>
 
                 <div className="space-y-4">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                         <div className="mb-4 flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-slate-500">Existing categories</p>
-                                <h3 className="text-2xl font-semibold text-slate-900">Manage</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Existing categories</p>
+                                <h3 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Manage</h3>
                             </div>
-                            <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-1 text-xs font-semibold text-slate-600">
+                            <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
                                 {categories.length} total
                             </div>
                         </div>
 
                         {categories.length === 0 ? (
-                            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-slate-600">
+                            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
                                 <p className="text-sm">No categories yet. Create your first one to start tagging invoices.</p>
                             </div>
                         ) : (
@@ -143,7 +143,7 @@ export default function InvoiceCategories({ categories = [] }) {
                                 {categories.map((category) => (
                                     <div
                                         key={category.id}
-                                        className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm transition hover:-translate-y-px hover:shadow-md"
+                                        className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm transition hover:-translate-y-px hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:shadow-slate-800"
                                     >
                                         {editingId === category.id ? (
                                             <form className="space-y-3" onSubmit={submitEdit}>
@@ -157,14 +157,14 @@ export default function InvoiceCategories({ categories = [] }) {
                                                             type="text"
                                                             value={editForm.data.name}
                                                             onChange={(e) => editForm.setData('name', e.target.value)}
-                                                            className="w-56 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none"
+                                                            className="w-56 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary-300 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:focus:border-primary-400"
                                                         />
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <button
                                                             type="button"
                                                             onClick={cancelEdit}
-                                                            className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-primary-200 hover:text-primary-700"
+                                                            className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-primary-200 hover:text-primary-700 dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary-400 dark:hover:text-primary-400"
                                                         >
                                                             Cancel
                                                         </button>
@@ -192,8 +192,8 @@ export default function InvoiceCategories({ categories = [] }) {
                                                         style={{ backgroundColor: category.color }}
                                                     />
                                                     <div>
-                                                        <div className="text-base font-semibold text-slate-900">{category.name}</div>
-                                                        <div className="text-xs uppercase tracking-wide text-slate-500">
+                                                        <div className="text-base font-semibold text-slate-900 dark:text-slate-100">{category.name}</div>
+                                                        <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                                                             {category.invoices_count} invoices
                                                         </div>
                                                     </div>
@@ -202,14 +202,14 @@ export default function InvoiceCategories({ categories = [] }) {
                                                     <button
                                                         type="button"
                                                         onClick={() => startEdit(category)}
-                                                        className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-primary-200 hover:text-primary-700"
+                                                        className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-primary-200 hover:text-primary-700 dark:border-slate-700 dark:text-slate-300 dark:hover:border-primary-400 dark:hover:text-primary-400"
                                                     >
                                                         Edit
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleDelete(category.id)}
-                                                        className="rounded-full border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50"
+                                                        className="rounded-full border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-900/20"
                                                     >
                                                         Delete
                                                     </button>

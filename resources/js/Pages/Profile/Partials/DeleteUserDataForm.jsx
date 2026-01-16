@@ -48,11 +48,11 @@ export default function DeleteUserDataForm({ className = '' }) {
     return (
         <section className={`space-y-6 ${className}`}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900">
+                <h2 className="text-lg font-medium text-gray-900 dark:text-slate-100">
                     Delete All Data
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
                     Permanently delete all your invoices, business entities, and uploaded files.
                     Your account will remain active, but all associated data will be removed.
                     This action cannot be undone.
@@ -65,11 +65,11 @@ export default function DeleteUserDataForm({ className = '' }) {
 
             <Modal show={confirmingDataDeletion} onClose={closeModal}>
                 <form onSubmit={deleteData} className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-slate-100">
                         Are you sure you want to delete all your data?
                     </h2>
 
-                    <p className="mt-1 text-sm text-gray-600">
+                    <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
                         This will permanently delete all your invoices, business entities,
                         and uploaded files. Your account will remain active but completely empty.
                         Please enter your password to confirm.

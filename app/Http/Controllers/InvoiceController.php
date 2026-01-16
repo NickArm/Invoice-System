@@ -392,9 +392,19 @@ class InvoiceController extends Controller
             $invoice->items()->delete();
         }
 
-        Attachment::where('invoice_id', $invoice->id)
+        // Get attachments and delete physical files
+        $attachments = Attachment::where('invoice_id', $invoice->id)
             ->where('user_id', auth()->id())
-            ->update(['invoice_id' => null, 'status' => 'uploaded']);
+            ->get();
+
+        foreach ($attachments as $attachment) {
+            // Delete physical file from storage
+            if ($attachment->path && \Storage::disk('local')->exists($attachment->path)) {
+                \Storage::disk('local')->delete($attachment->path);
+            }
+            // Delete attachment record
+            $attachment->delete();
+        }
 
         $invoice->delete();
 

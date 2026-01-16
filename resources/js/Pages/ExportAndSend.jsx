@@ -20,7 +20,7 @@ export default function ExportAndSend({ accountantEmails = [], exportDefaults = 
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-slate-800">Export & Send</h2>}
+            header={<h2 className="text-xl font-semibold leading-tight text-slate-800 dark:text-slate-100">Export & Send</h2>}
         >
             <Head title="Export & Send" />
 
