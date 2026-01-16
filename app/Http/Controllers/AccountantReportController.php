@@ -51,15 +51,12 @@ class AccountantReportController extends Controller
             return back()->withErrors(['date_to' => 'Η τελική ημερομηνία πρέπει να είναι μετά την αρχική.'])->withInput();
         }
 
-        $invoiceQuery = Invoice::with('businessEntity')
-            ->where('user_id', $user->id)
-            ->whereBetween('issue_date', [$from, $to]);
-
-        if ($validated['type'] !== 'all') {
-            $invoiceQuery->where('type', $validated['type']);
-        }
-
-        $invoices = $invoiceQuery->orderBy('issue_date')->get();
+        $invoices = Invoice::with('businessEntity')
+            ->byUser($user->id)
+            ->byDateRange($from, $to)
+            ->byType($validated['type'])
+            ->orderBy('issue_date')
+            ->get();
 
         if ($invoices->isEmpty()) {
             return back()->withErrors(['date_from' => 'Δεν βρέθηκαν τιμολόγια στο επιλεγμένο διάστημα.'])->withInput();

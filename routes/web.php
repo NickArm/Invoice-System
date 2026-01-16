@@ -64,6 +64,7 @@ Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
     // Invoices (RESTful resource)
     Route::resource('invoices', InvoiceController::class)->except(['show']);
     Route::get('/invoices/extract/{attachment}', [InvoiceController::class, 'extract'])->name('invoices.extract');
+    Route::patch('/invoices/{invoice}/approve', [InvoiceController::class, 'approve'])->name('invoices.approve');
 
     // Business Entities (RESTful resource)
     Route::resource('business-entities', \App\Http\Controllers\BusinessEntityController::class);
@@ -77,16 +78,6 @@ Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
     Route::post('/upload', [UploadController::class, 'store'])
         ->middleware('throttle:30,1')
         ->name('upload.store');
-
-    // Debug endpoint for CSRF issues
-    Route::get('/debug/csrf', function () {
-        return response()->json([
-            'csrf_token' => csrf_token(),
-            'session_id' => session()->getId(),
-            'user_id' => auth()->id(),
-            'session_driver' => config('session.driver'),
-        ]);
-    })->name('debug.csrf');
 
     // Admin Panel - User Management (admin only)
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {

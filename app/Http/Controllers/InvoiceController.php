@@ -31,11 +31,8 @@ class InvoiceController extends Controller
         $type = $filters['type'] ?? 'all';
 
         $query = Invoice::with(['businessEntity', 'attachment', 'category'])
-            ->where('user_id', $userId);
-
-        if (in_array($type, ['income', 'expense'])) {
-            $query->where('type', $type);
-        }
+            ->byUser($userId)
+            ->byType($type);
 
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -50,34 +47,16 @@ class InvoiceController extends Controller
         }
 
         if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('number', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhereHas('businessEntity', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                            ->orWhere('tax_id', 'like', "%{$search}%");
-                    });
-            });
+            $query->bySearchTerm($filters['search']);
         }
 
-        if (!empty($filters['start_date'])) {
-            $query->whereDate('issue_date', '>=', $filters['start_date']);
+        if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
+            $query->byDateRange($filters['start_date'], $filters['end_date']);
         }
 
-        if (!empty($filters['end_date'])) {
-            $query->whereDate('issue_date', '<=', $filters['end_date']);
-        }
+        $query->byAmount($filters['min_amount'] ?? null, $filters['max_amount'] ?? null);
 
-        if (!empty($filters['min_amount'])) {
-            $query->where('total_gross', '>=', $filters['min_amount']);
-        }
-
-        if (!empty($filters['max_amount'])) {
-            $query->where('total_gross', '<=', $filters['max_amount']);
-        }
-
-        $summaryQuery = (clone $query)->where('status', '!=', 'draft');
+        $summaryQuery = (clone $query)->approvedOnly();
         $summary = [
             'count' => (clone $summaryQuery)->count(),
             'gross' => (float) (clone $summaryQuery)->sum('total_gross'),
@@ -420,5 +399,22 @@ class InvoiceController extends Controller
         $invoice->delete();
 
         return redirect()->route('invoices.index')->with('success', 'Invoice deleted successfully!');
+    }
+
+    public function approve(Invoice $invoice)
+    {
+        // Ensure user owns this invoice
+        if ($invoice->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Only draft invoices can be approved
+        if ($invoice->status !== 'draft') {
+            return back()->withErrors(['status' => 'Only draft invoices can be approved.']);
+        }
+
+        $invoice->update(['status' => 'approved']);
+
+        return back()->with('success', 'Invoice approved successfully!');
     }
 }

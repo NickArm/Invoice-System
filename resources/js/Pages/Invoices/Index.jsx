@@ -59,6 +59,16 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
         }
     };
 
+    const handleApprove = (invoiceId) => {
+        if (confirm('Approve this invoice? It will no longer be marked as draft.')) {
+            router.patch(route('invoices.approve', invoiceId), {}, {
+                onSuccess: () => {
+                    applyFilters();
+                },
+            });
+        }
+    };
+
     const summaryLabel = useMemo(() => {
         const gross = Number(summary.gross || 0).toFixed(2);
         return `${summary.count} invoices · €${gross}`;
@@ -303,6 +313,15 @@ export default function Index({ invoices, filters = {}, entities = [], categorie
                                             </td>
                                             <td className="px-4 py-3 text-sm">
                                                 <div className="flex items-center gap-2">
+                                                    {invoice.status === 'draft' && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleApprove(invoice.id)}
+                                                            className="rounded-full border border-emerald-200 px-3 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50"
+                                                        >
+                                                            Approve
+                                                        </button>
+                                                    )}
                                                     <Link
                                                         href={route('invoices.edit', invoice.id)}
                                                         className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-primary-200 hover:text-primary-700"

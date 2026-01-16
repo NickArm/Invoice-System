@@ -1,7 +1,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function Index({ entities, filters }) {
+    const { errors } = usePage().props;
+    const [errorMessage, setErrorMessage] = useState(null);
+
     const badgeClass = (type) => {
         if (type === 'Supplier') return 'bg-primary-50 text-primary-700 border border-primary-100';
         return 'bg-emerald-50 text-emerald-700 border border-emerald-100';
@@ -9,7 +13,14 @@ export default function Index({ entities, filters }) {
 
     const handleDelete = (id) => {
         if (confirm('Delete this business entity?')) {
-            router.delete(route('business-entities.destroy', id));
+            router.delete(route('business-entities.destroy', id), {
+                onError: (errors) => {
+                    setErrorMessage(errors.invoices);
+                },
+                onSuccess: () => {
+                    setErrorMessage(null);
+                }
+            });
         }
     };
 
@@ -20,6 +31,12 @@ export default function Index({ entities, filters }) {
             <Head title="Business Entities" />
 
             <div className="space-y-6">
+                {(errorMessage || errors?.invoices) && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                        <p className="text-sm font-semibold text-red-800">{errorMessage || errors?.invoices}</p>
+                    </div>
+                )}
+                
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <p className="text-sm text-slate-500">Directory</p>

@@ -67,4 +67,61 @@ class Invoice extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    // Query Scopes
+    public function scopeApproved($query)
+    {
+        return $query->where('status', 'approved');
+    }
+
+    public function scopeDraft($query)
+    {
+        return $query->where('status', 'draft');
+    }
+
+    public function scopeByType($query, string $type)
+    {
+        if (in_array($type, ['income', 'expense'])) {
+            return $query->where('type', $type);
+        }
+        return $query;
+    }
+
+    public function scopeByDateRange($query, $startDate, $endDate)
+    {
+        return $query->whereBetween('issue_date', [$startDate, $endDate]);
+    }
+
+    public function scopeByUser($query, int $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    public function scopeApprovedOnly($query)
+    {
+        return $query->where('status', '!=', 'draft');
+    }
+
+    public function scopeBySearchTerm($query, string $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('number', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%")
+                ->orWhereHas('businessEntity', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('tax_id', 'like', "%{$search}%");
+                });
+        });
+    }
+
+    public function scopeByAmount($query, $minAmount, $maxAmount)
+    {
+        if (!empty($minAmount)) {
+            $query->where('total_gross', '>=', $minAmount);
+        }
+        if (!empty($maxAmount)) {
+            $query->where('total_gross', '<=', $maxAmount);
+        }
+        return $query;
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorBusinessEntityRequest;
 use App\Models\BusinessEntity;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -52,7 +53,7 @@ class BusinessEntityController extends Controller
 
     public function edit(BusinessEntity $businessEntity)
     {
-        // Ensure user owns this entity (admins bypass)
+        // Ensure user owns this entity
         if ($businessEntity->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
             abort(403);
         }
@@ -75,60 +76,39 @@ class BusinessEntityController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StorBusinessEntityRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'tax_id' => 'nullable|string|max:255',
-            'tax_office' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'country' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:255',
-            'postal_code' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:255',
-            'mobile' => 'nullable|string|max:255',
-            'type' => 'required|in:customer,supplier',
-        ]);
-
-        BusinessEntity::create(array_merge($validated, [
+        BusinessEntity::create(array_merge($request->validated(), [
             'user_id' => auth()->id(),
         ]));
 
         return redirect()->route('business-entities.index')->with('success', 'Business entity created successfully!');
     }
 
-    public function update(Request $request, BusinessEntity $businessEntity)
+    public function update(StorBusinessEntityRequest $request, BusinessEntity $businessEntity)
     {
-        // Ensure user owns this entity (admins bypass)
+        // Ensure user owns this entity
         if ($businessEntity->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
             abort(403);
         }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'tax_id' => 'nullable|string|max:255',
-            'tax_office' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'country' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:255',
-            'postal_code' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:255',
-            'mobile' => 'nullable|string|max:255',
-            'type' => 'required|in:customer,supplier',
-        ]);
-
-        $businessEntity->update($validated);
+        $businessEntity->update($request->validated());
 
         return redirect()->route('business-entities.index')->with('success', 'Business entity updated successfully!');
     }
 
     public function destroy(BusinessEntity $businessEntity)
     {
-        // Ensure user owns this entity (admins bypass)
+        // Ensure user owns this entity
         if ($businessEntity->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
             abort(403);
+        }
+
+        // Check if entity has any invoices
+        if ($businessEntity->invoices()->exists()) {
+            return back()->withErrors([
+                'invoices' => 'Δεν μπορείτε να διαγράψετε αυτή τη λογιστική οντότητα γιατί έχει συνδεδεμένα τιμολόγια. Διαγράψτε πρώτα τα σχετικά τιμολόγια.'
+            ]);
         }
 
         $businessEntity->delete();
