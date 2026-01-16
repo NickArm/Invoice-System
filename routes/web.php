@@ -78,6 +78,16 @@ Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
         ->middleware('throttle:30,1')
         ->name('upload.store');
 
+    // Debug endpoint for CSRF issues
+    Route::get('/debug/csrf', function () {
+        return response()->json([
+            'csrf_token' => csrf_token(),
+            'session_id' => session()->getId(),
+            'user_id' => auth()->id(),
+            'session_driver' => config('session.driver'),
+        ]);
+    })->name('debug.csrf');
+
     // Admin Panel - User Management (admin only)
     Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::resource('users', UserController::class)->except(['show']);

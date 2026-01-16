@@ -38,38 +38,32 @@ export default function UploadModal({ isOpen, onClose }) {
 
         setUploading(true);
 
+        // Get CSRF token from meta tag
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-        const getXsrfCookie = () => {
-            const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-            return match ? decodeURIComponent(match[1]) : null;
-        };
-
-        const headers = {
-            ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}),
-            ...(getXsrfCookie() ? { 'X-XSRF-TOKEN': getXsrfCookie() } : {}),
-            'X-Requested-With': 'XMLHttpRequest',
-            Accept: 'application/json',
-        };
+        if (!csrfToken) {
+            alert('Security token not found. Please refresh the page.');
+            setUploading(false);
+            return;
+        }
 
         const attachmentIds = [];
 
         for (const file of files) {
             const formData = new FormData();
-            if (csrfToken) {
-                formData.append('_token', csrfToken);
-            }
+            formData.append('_token', csrfToken);
             formData.append('file', file);
 
             try {
                 const response = await fetch('/upload', {
                     method: 'POST',
-                    headers,
                     credentials: 'same-origin',
                     body: formData,
                 });
 
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Upload error response:', errorText);
                     throw new Error(`Upload failed with status ${response.status}`);
                 }
 
