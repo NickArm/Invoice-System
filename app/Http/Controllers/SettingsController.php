@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\BankAccount;
 use App\Services\ImapService;
 use App\Services\AadeService;
 use Illuminate\Http\Request;
@@ -13,9 +14,11 @@ class SettingsController extends Controller
     public function businessDetails()
     {
         $company = auth()->user()->company;
+        $bankAccounts = $company ? $company->bankAccounts()->get() : collect([]);
 
         return Inertia::render('Settings/BusinessDetails', [
             'company' => $company,
+            'bankAccounts' => $bankAccounts,
         ]);
     }
 
@@ -284,5 +287,66 @@ class SettingsController extends Controller
             'results' => $results
         ]
         );
+    }
+
+    /**
+     * Store a new bank account for the company
+     */
+    public function storeBankAccount(Request $request)
+    {
+        $company = auth()->user()->company;
+        if (!$company) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No company found. Please set up business details first.'
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'bank_name' => 'required|string|max:255',
+            'iban' => 'required|string|max:34',
+            'swift_bic' => 'nullable|string|max:11',
+        ]);
+
+        $bankAccount = BankAccount::create([
+            'company_id' => $company->id,
+            ...$validated,
+        ]);
+
+        return response()->json($bankAccount, 201);
+    }
+
+    /**
+     * Update a bank account
+     */
+    public function updateBankAccount(Request $request, BankAccount $bankAccount)
+    {
+        if ($bankAccount->company->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'bank_name' => 'required|string|max:255',
+            'iban' => 'required|string|max:34',
+            'swift_bic' => 'nullable|string|max:11',
+        ]);
+
+        $bankAccount->update($validated);
+
+        return response()->json($bankAccount, 200);
+    }
+
+    /**
+     * Delete a bank account
+     */
+    public function deleteBankAccount(BankAccount $bankAccount)
+    {
+        if ($bankAccount->company->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $bankAccount->delete();
+
+        return response()->json(['success' => true], 200);
     }
 }

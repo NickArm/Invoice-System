@@ -40,6 +40,11 @@ Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
         Route::get('/business-details', [SettingsController::class, 'businessDetails'])->name('business-details');
         Route::post('/business-details', [SettingsController::class, 'updateBusinessDetails'])->name('business-details.update');
 
+        // Bank accounts
+        Route::post('/business-details/bank-accounts', [SettingsController::class, 'storeBankAccount'])->name('bank-accounts.store');
+        Route::patch('/bank-accounts/{bankAccount}', [SettingsController::class, 'updateBankAccount'])->name('bank-accounts.update');
+        Route::delete('/bank-accounts/{bankAccount}', [SettingsController::class, 'deleteBankAccount'])->name('bank-accounts.destroy');
+
         Route::get('/accountant-emails', [SettingsController::class, 'accountantEmails'])->name('accountant-emails');
         Route::post('/accountant-emails', [SettingsController::class, 'updateAccountantEmails'])->name('accountant-emails.update');
 

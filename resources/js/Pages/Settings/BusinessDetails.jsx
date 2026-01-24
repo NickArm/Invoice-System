@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import BankAccountsManager from '@/Components/BankAccountsManager';
 
-export default function BusinessDetails({ company }) {
+export default function BusinessDetails({ company, bankAccounts }) {
     const { data, setData, post, processing, errors } = useForm({
         name: company?.name || '',
         tax_id: company?.tax_id || '',
@@ -212,6 +213,14 @@ export default function BusinessDetails({ company }) {
                                     </button>
                                 </div>
                             </form>
+
+                            {/* Bank Accounts Manager */}
+                            {company && (
+                                <BankAccountsManager
+                                    bankAccounts={bankAccounts || []}
+                                    companyId={company.id}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
