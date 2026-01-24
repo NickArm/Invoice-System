@@ -127,54 +127,6 @@ class AadeService
     }
 
     /**
-     * Test connection to VAT Reg with a known valid VAT number (National Bank of Greece)
-            $entity = $this->vatRegistry->handle('094014201');
-
-            if ($entity && $entity->vatNumber) {
-                return [
-                    'success' => true,
-                    'message' => 'Connection to VAT Registry successful'
-                ];
-            }
-
-            return [
-                'success' => false,
-                'message' => 'VAT Registry connection failed - no response'
-            ];
-        } catch (VatException $e) {
-            Log::error('VAT Registry connection test failed', [
-                'error' => $e->getMessage()
-            ]);
-
-            return [
-                'success' => false,
-                'message' => 'VAT Registry error: ' . $e->getMessage()
-                'success' => false,
-                'message' => 'VAT Registry client not initialized'
-            ];
-        }
-
-        try {
-            // Try a simple query
-            $result = $this->vatRegistry->get('999999999');
-
-            return [
-                'success' => true,
-                'message' => 'Connection to VAT Registry successful'
-            ];
-        } catch (\Exception $e) {
-            Log::error('VAT Registry connection test failed', [
-                'error' => $e->getMessage()
-            ]);
-
-            return [
-                'success' => false,
-                'message' => 'Connection to VAT Registry failed: ' . $e->getMessage()
-            ];
-        }
-    }
-
-    /**
      * Test connection to AADE myDATA API
      */
     public function testMyDataConnection(): array
@@ -200,6 +152,54 @@ class AadeService
             return [
                 'success' => false,
                 'message' => 'Connection to AADE myDATA failed: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Test connection to VAT Registry using a known VAT number probe
+     */
+    public function testVatRegistryConnection(): array
+    {
+        if (!$this->vatRegistry) {
+            return [
+                'success' => false,
+                'message' => 'VAT Registry client not initialized'
+            ];
+        }
+
+        try {
+            // Use National Bank of Greece VAT as a simple probe
+            $entity = $this->vatRegistry->handle('094014201');
+
+            if ($entity && $entity->vatNumber) {
+                return [
+                    'success' => true,
+                    'message' => 'Connection to VAT Registry successful'
+                ];
+            }
+
+            return [
+                'success' => false,
+                'message' => 'VAT Registry connection failed - no response'
+            ];
+        } catch (VatException $e) {
+            Log::error('VAT Registry connection test failed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'VAT Registry error: ' . $e->getMessage()
+            ];
+        } catch (\Exception $e) {
+            Log::error('VAT Registry connection test failed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Connection to VAT Registry failed: ' . $e->getMessage()
             ];
         }
     }

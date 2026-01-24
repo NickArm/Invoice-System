@@ -438,6 +438,9 @@ class ProcessInvoiceAttachment implements ShouldQueue
         // Calculate confidence
         $confidence = $this->calculateConfidence($supplierData, $invoice);
 
+        // Format line items into description
+        $description = $this->formatLineItemsToDescription($lineItems);
+
         return [
             'type' => $type,
             'supplier' => $supplier,
@@ -449,7 +452,7 @@ class ProcessInvoiceAttachment implements ShouldQueue
             'total_net' => floatval($totals['total_net'] ?? 0),
             'vat_amount' => floatval($totals['total_vat'] ?? 0),
             'status' => $status,
-            'description' => '',
+            'description' => $description,
             'confidence' => $confidence,
         ];
     }
@@ -731,5 +734,30 @@ class ProcessInvoiceAttachment implements ShouldQueue
 
         $digits = preg_replace('/\D+/', '', $value);
         return $digits ?: null;
+    }
+
+    /**
+     * Format line items to simple description string
+     * Example: "2x Item 1, 1x Item 2, 3x Item 3"
+     */
+    private function formatLineItemsToDescription(array $lineItems): string
+    {
+        if (empty($lineItems)) {
+            return '';
+        }
+
+        $formatted = [];
+        foreach ($lineItems as $item) {
+            $description = trim($item['description'] ?? '');
+            $quantity = $item['quantity'] ?? 1;
+
+            if ($description) {
+                // Format quantity (remove .0 if integer)
+                $qtyStr = (floor($quantity) == $quantity) ? (int)$quantity : $quantity;
+                $formatted[] = "{$qtyStr}x {$description}";
+            }
+        }
+
+        return implode(', ', $formatted);
     }
 }

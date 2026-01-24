@@ -344,7 +344,7 @@ class InvoiceController extends Controller
             'vat_percent' => 'nullable|numeric',
             'vat_amount' => 'nullable|numeric',
             'currency' => 'required|string',
-            'status' => 'required|in:pending,paid',
+            'status' => 'required|in:pending,paid,approved',
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
         ]);

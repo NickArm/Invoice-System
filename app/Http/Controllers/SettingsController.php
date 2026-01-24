@@ -228,14 +228,13 @@ class SettingsController extends Controller
     public function testAadeConnection(Request $request)
     {
         $validated = $request->validate([
-            'aade_username' => 'required|string|max:255',
-            'aade_password' => 'required|string|max:255',
+            'aade_username' => 'nullable|string|max:255',
+            'aade_password' => 'nullable|string|max:255',
             // VAT Registry test
             'vat_registry_username' => 'nullable|string|max:255',
             'vat_registry_password' => 'nullable|string|max:255',
 
             // myDATA test
-            'aade_username' => 'nullable|string|max:255',
             'mydata_subscription_key' => 'nullable|string|max:255',
         ]);
 
