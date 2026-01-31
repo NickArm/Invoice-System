@@ -18,6 +18,10 @@ class ToolsController extends Controller
         return Inertia::render('Tools/Index', [
             'bankAccounts' => $bankAccounts,
             'accountantEmails' => $accountantEmails,
+            'mydataCredentials' => [
+                'username' => $user->aade_username,
+                'subscriptionKey' => $user->mydata_subscription_key,
+            ],
         ]);
     }
 

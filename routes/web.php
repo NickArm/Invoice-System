@@ -76,6 +76,7 @@ Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
     // Tools
     Route::get('/tools', [\App\Http\Controllers\ToolsController::class, 'index'])->name('tools.index');
     Route::post('/tools/validate-tax-id', [\App\Http\Controllers\ToolsController::class, 'validateTaxId'])->name('tools.validate-tax-id');
+    Route::post('/tools/myaade/fetch', [\App\Http\Controllers\MyAADEController::class, 'fetch'])->name('tools.myaade.fetch');
 
     Route::get('/attachments/{attachment}/preview', function (Attachment $attachment) {
         if ($attachment->user_id !== auth()->id()) abort(403);

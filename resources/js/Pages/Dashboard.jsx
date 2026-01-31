@@ -1,10 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-
-const formatCurrency = (value, currency = 'EUR') => {
-    return new Intl.NumberFormat('el-GR', { style: 'currency', currency }).format(value || 0);
-};
+import { formatCurrency } from '@/Utils/formatting';
 
 const statusBadge = (status) => {
     const normalized = (status || '').toLowerCase();

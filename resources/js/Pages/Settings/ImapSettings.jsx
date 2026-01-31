@@ -230,7 +230,7 @@ export default function ImapSettings({ auth, settings }) {
                                     </div>
                                     <InputError message={errors.imap_password} className="mt-2" />
                                     <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                                        {settings.imap_password_exists 
+                                        {settings.imap_password_exists
                                             ? 'Leave blank to keep existing password. For Gmail, use an App Password.'
                                             : 'For Gmail, use an App Password.'
                                         }

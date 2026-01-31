@@ -4,13 +4,15 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import BankAccountsTab from './Tabs/BankAccountsTab';
 import VatCheckTab from './Tabs/VatCheckTab';
 import ExportAndSendTab from './Tabs/ExportAndSendTab';
+import MyAADETab from './Tabs/MyAADETab';
 
-export default function Tools({ bankAccounts, accountantEmails }) {
+export default function Tools({ bankAccounts, accountantEmails, mydataCredentials }) {
     const [activeTab, setActiveTab] = useState('bank-accounts');
 
     const tabs = [
         { id: 'bank-accounts', label: 'My Bank Accounts', component: BankAccountsTab },
         { id: 'vat-check', label: 'Check Greek VAT', component: VatCheckTab },
+        { id: 'myaade', label: 'myAADE', component: MyAADETab },
         { id: 'export-send', label: 'Export & Send', component: ExportAndSendTab },
     ];
 
@@ -22,6 +24,9 @@ export default function Tools({ bankAccounts, accountantEmails }) {
         }
         if (activeTab === 'export-send') {
             return { accountantEmails };
+        }
+        if (activeTab === 'myaade') {
+            return { mydataCredentials };
         }
         return {};
     };

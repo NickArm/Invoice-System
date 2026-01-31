@@ -70,7 +70,7 @@ export default function UploadModal({ isOpen, onClose }) {
                         setUploading(false);
                         return;
                     }
-                    
+
                     const errorText = await response.text();
                     console.error('Upload error response:', errorText);
                     throw new Error(`Upload failed with status ${response.status}`);

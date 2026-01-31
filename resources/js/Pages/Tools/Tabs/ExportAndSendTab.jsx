@@ -1,9 +1,6 @@
 import React from 'react';
 import { useForm, usePage } from '@inertiajs/react';
-
-const formatCurrency = (value, currency = 'EUR') => {
-    return new Intl.NumberFormat('el-GR', { style: 'currency', currency }).format(value || 0);
-};
+import { formatCurrency } from '@/Utils/formatting';
 
 export default function ExportAndSendTab({ accountantEmails = [] }) {
     const { flash = {} } = usePage().props || {};
