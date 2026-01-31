@@ -64,7 +64,6 @@ Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
     });
 
     Route::post('/accountant/send', [AccountantReportController::class, 'send'])->name('accountant.send');
-    Route::get('/export-send', [AccountantReportController::class, 'show'])->name('export-send.index');
 
     // Invoices (RESTful resource)
     Route::resource('invoices', InvoiceController::class)->except(['show']);

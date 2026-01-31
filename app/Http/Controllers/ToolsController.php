@@ -13,9 +13,11 @@ class ToolsController extends Controller
         $user = auth()->user();
         $company = $user->company;
         $bankAccounts = $company ? $company->bankAccounts()->get() : collect([]);
+        $accountantEmails = collect($user->accountant_emails ?? [])->filter()->values();
 
         return Inertia::render('Tools/Index', [
             'bankAccounts' => $bankAccounts,
+            'accountantEmails' => $accountantEmails,
         ]);
     }
 
@@ -29,7 +31,7 @@ class ToolsController extends Controller
         ]);
 
         $user = auth()->user();
-        
+
         // Get stored credentials from settings
         if (!$user->vat_registry_username || !$user->vat_registry_password) {
             return response()->json([

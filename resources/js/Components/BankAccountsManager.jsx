@@ -13,6 +13,36 @@ export default function BankAccountsManager({ bankAccounts = [], companyId }) {
     });
     const [errors, setErrors] = useState({});
 
+    // Frontend IBAN validation
+    const isValidIban = (iban) => {
+        const cleaned = iban.toUpperCase().replace(/\s/g, '');
+        
+        // Check length (15-34 characters)
+        if (cleaned.length < 15 || cleaned.length > 34) {
+            return false;
+        }
+        
+        // Check format: 2 letters, 2 digits, then alphanumeric
+        if (!/^[A-Z]{2}[0-9]{2}[A-Z0-9]+$/.test(cleaned)) {
+            return false;
+        }
+        
+        return true;
+    };
+
+    // Frontend SWIFT/BIC validation
+    const isValidSwiftBic = (bic) => {
+        const cleaned = bic.toUpperCase().replace(/\s/g, '');
+        
+        // Should be 8 or 11 characters
+        if (cleaned.length !== 8 && cleaned.length !== 11) {
+            return false;
+        }
+        
+        // Format: 4 letters (bank), 2 letters (country), 2 alphanumeric, optional 3 alphanumeric
+        return /^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(cleaned);
+    };
+
     const resetForm = () => {
         setFormData({
             bank_name: '',
@@ -37,6 +67,25 @@ export default function BankAccountsManager({ bankAccounts = [], companyId }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrors({});
+
+        // Frontend validation
+        const newErrors = {};
+        if (!formData.bank_name.trim()) {
+            newErrors.bank_name = 'Bank name is required';
+        }
+        if (!formData.iban.trim()) {
+            newErrors.iban = 'IBAN is required';
+        } else if (!isValidIban(formData.iban)) {
+            newErrors.iban = 'The IBAN format is invalid. Please provide a valid IBAN.';
+        }
+        if (formData.swift_bic.trim() && !isValidSwiftBic(formData.swift_bic)) {
+            newErrors.swift_bic = 'The SWIFT/BIC format is invalid. Expected 8 or 11 characters.';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
 
         try {
             if (editingId) {

@@ -51,17 +51,26 @@ export default function UploadModal({ isOpen, onClose }) {
 
         for (const file of files) {
             const formData = new FormData();
-            formData.append('_token', csrfToken);
             formData.append('file', file);
 
             try {
                 const response = await fetch('/upload', {
                     method: 'POST',
                     credentials: 'same-origin',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
                     body: formData,
                 });
 
                 if (!response.ok) {
+                    if (response.status === 419) {
+                        alert('Your session has expired. Please refresh the page and try again.');
+                        setUploading(false);
+                        return;
+                    }
+                    
                     const errorText = await response.text();
                     console.error('Upload error response:', errorText);
                     throw new Error(`Upload failed with status ${response.status}`);

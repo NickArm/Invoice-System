@@ -60,10 +60,6 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <Dropdown.Content align="right">
                                     <Dropdown.Link href={route('profile.edit')}>Profile</Dropdown.Link>
 
-                                    <Dropdown.Link href={route('export-send.index')}>
-                                        Export & Send
-                                    </Dropdown.Link>
-
                                     <Dropdown.Link href={route('settings.business-details')}>
                                         Business Details
                                     </Dropdown.Link>
@@ -144,9 +140,6 @@ export default function AuthenticatedLayout({ header, children }) {
 
                         <div className="mt-3 space-y-1 px-4">
                             <ResponsiveNavLink href={route('profile.edit')}>Profile</ResponsiveNavLink>
-                            <ResponsiveNavLink href={route('export-send.index')}>
-                                Export & Send
-                            </ResponsiveNavLink>
                             <ResponsiveNavLink href={route('settings.business-details')}>
                                 Business Details
                             </ResponsiveNavLink>

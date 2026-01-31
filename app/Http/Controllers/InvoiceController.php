@@ -174,7 +174,20 @@ class InvoiceController extends Controller
             'supplier_phone' => 'nullable|string|max:50',
             'supplier_mobile' => 'nullable|string|max:50',
             'supplier_type' => 'nullable|in:customer,supplier',
-            'invoice_number' => 'required|string|max:255',
+            'invoice_number' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($request) {
+                    $exists = Invoice::where('user_id', auth()->id())
+                        ->where('number', $value)
+                        ->where('business_entity_id', $request->entity_id)
+                        ->exists();
+                    if ($exists) {
+                        $fail('This invoice number already exists for this business entity.');
+                    }
+                },
+            ],
             'issue_date' => 'required|date',
             'due_date' => 'nullable|date',
             'total_gross' => 'required|numeric|gt:0',
@@ -336,7 +349,21 @@ class InvoiceController extends Controller
             'supplier_phone' => 'nullable|string|max:50',
             'supplier_mobile' => 'nullable|string|max:50',
             'supplier_type' => 'nullable|in:customer,supplier',
-            'invoice_number' => 'required|string|max:255',
+            'invoice_number' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($request, $invoice) {
+                    $exists = Invoice::where('user_id', auth()->id())
+                        ->where('number', $value)
+                        ->where('business_entity_id', $request->entity_id)
+                        ->where('id', '!=', $invoice->id)
+                        ->exists();
+                    if ($exists) {
+                        $fail('This invoice number already exists for this business entity.');
+                    }
+                },
+            ],
             'issue_date' => 'required|date',
             'due_date' => 'nullable|date',
             'total_gross' => 'required|numeric|gt:0',

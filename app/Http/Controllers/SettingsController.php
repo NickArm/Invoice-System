@@ -99,6 +99,7 @@ class SettingsController extends Controller
                 'imap_host' => $user->imap_host,
                 'imap_port' => $user->imap_port ?? 993,
                 'imap_username' => $user->imap_username,
+                'imap_password_exists' => !empty($user->imap_password), // Add this flag
                 'imap_ssl' => $user->imap_ssl ?? true,
                 'imap_subject_filter' => $user->imap_subject_filter,
                 'imap_subject_match_type' => $user->imap_subject_match_type ?? 'contains',
@@ -304,8 +305,26 @@ class SettingsController extends Controller
 
         $validated = $request->validate([
             'bank_name' => 'required|string|max:255',
-            'iban' => 'required|string|max:34',
-            'swift_bic' => 'nullable|string|max:11',
+            'iban' => [
+                'required',
+                'string',
+                'max:34',
+                function ($attribute, $value, $fail) {
+                    if (!$this->isValidIban($value)) {
+                        $fail('The IBAN format is invalid. Please provide a valid IBAN.');
+                    }
+                },
+            ],
+            'swift_bic' => [
+                'nullable',
+                'string',
+                'max:11',
+                function ($attribute, $value, $fail) {
+                    if ($value && !$this->isValidSwiftBic($value)) {
+                        $fail('The SWIFT/BIC format is invalid. Expected 8 or 11 characters.');
+                    }
+                },
+            ],
         ]);
 
         $bankAccount = BankAccount::create([
@@ -327,8 +346,26 @@ class SettingsController extends Controller
 
         $validated = $request->validate([
             'bank_name' => 'required|string|max:255',
-            'iban' => 'required|string|max:34',
-            'swift_bic' => 'nullable|string|max:11',
+            'iban' => [
+                'required',
+                'string',
+                'max:34',
+                function ($attribute, $value, $fail) {
+                    if (!$this->isValidIban($value)) {
+                        $fail('The IBAN format is invalid. Please provide a valid IBAN.');
+                    }
+                },
+            ],
+            'swift_bic' => [
+                'nullable',
+                'string',
+                'max:11',
+                function ($attribute, $value, $fail) {
+                    if ($value && !$this->isValidSwiftBic($value)) {
+                        $fail('The SWIFT/BIC format is invalid. Expected 8 or 11 characters.');
+                    }
+                },
+            ],
         ]);
 
         $bankAccount->update($validated);
@@ -348,5 +385,56 @@ class SettingsController extends Controller
         $bankAccount->delete();
 
         return response()->json(['success' => true], 200);
+    }
+
+    /**
+     * Validate IBAN format using mod-97 algorithm
+     */
+    private function isValidIban($iban)
+    {
+        // Remove spaces and convert to uppercase
+        $iban = strtoupper(str_replace(' ', '', $iban));
+
+        // Check length (should be 15-34 characters)
+        if (strlen($iban) < 15 || strlen($iban) > 34) {
+            return false;
+        }
+
+        // Check format: 2 letters, 2 digits, then alphanumeric
+        if (!preg_match('/^[A-Z]{2}[0-9]{2}[A-Z0-9]+$/', $iban)) {
+            return false;
+        }
+
+        // Move first 4 characters to end
+        $rearranged = substr($iban, 4) . substr($iban, 0, 4);
+
+        // Replace letters with numbers (A=10, B=11, ..., Z=35)
+        $numeric = '';
+        foreach (str_split($rearranged) as $char) {
+            if (is_numeric($char)) {
+                $numeric .= $char;
+            } else {
+                $numeric .= (ord($char) - ord('A') + 10);
+            }
+        }
+
+        // Validate mod 97
+        return bcmod($numeric, '97') === '1';
+    }
+
+    /**
+     * Validate SWIFT/BIC format
+     */
+    private function isValidSwiftBic($bic)
+    {
+        // SWIFT/BIC should be 8 or 11 characters
+        $bic = strtoupper(str_replace(' ', '', $bic));
+
+        if (strlen($bic) !== 8 && strlen($bic) !== 11) {
+            return false;
+        }
+
+        // Format: 4 letters (bank), 2 letters (country), 2 alphanumeric (location), optional 3 alphanumeric (branch)
+        return preg_match('/^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$/', $bic);
     }
 }
