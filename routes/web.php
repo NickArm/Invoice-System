@@ -8,6 +8,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ChangelogController;
 use App\Models\Attachment;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,9 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
+
+// Changelog (public route - no auth required)
+Route::get('/changelog', [ChangelogController::class, 'index'])->name('changelog');
 
 Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

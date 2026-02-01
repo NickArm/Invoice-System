@@ -180,14 +180,22 @@ export default function AuthenticatedLayout({ header, children }) {
 
             <footer className="border-t border-slate-200 bg-white/80 backdrop-blur py-2 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-400">
                 <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 sm:flex-row sm:px-6">
-                    <span className=" text-slate-700 dark:text-slate-200">Invaice</span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-slate-700 dark:text-slate-200">Invaice</span>
+                        <Link
+                            href="/changelog"
+                            className="text-xs px-2 py-0.5 rounded-md bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-900/40 dark:text-primary-400 dark:hover:bg-primary-900/60 transition"
+                        >
+                            v1.1.0
+                        </Link>
+                    </div>
                     <span className="text-slate-600 dark:text-slate-400">
                         Developed by{' '}
                         <a
                             href="https://armenisnick.gr"
                             target="_blank"
                             rel="noreferrer"
-                            className=" text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                            className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
                         >
                             Nick Armenis
                         </a>

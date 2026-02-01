@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { formatCurrency, formatDate } from '@/Utils/formatting';
 import TransactionDetailsModal from '@/Components/TransactionDetailsModal';
+import { usePullToRefresh } from '@/Hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/Components/PullToRefreshIndicator';
 
 export default function MyAADETab({ mydataCredentials }) {
     const [type, setType] = useState('income');
@@ -23,9 +25,14 @@ export default function MyAADETab({ mydataCredentials }) {
     const [modalOpen, setModalOpen] = useState(false);
     const [detailsLoading, setDetailsLoading] = useState(false);
     const [detailsError, setDetailsError] = useState(null);
+    
+    // Pull-to-refresh setup
+    const { containerRef, pullDistance, isPulling: isRefreshing } = usePullToRefresh(async () => {
+        await handleFetch(new Event('pull-refresh'));
+    });
 
     const handleFetch = async (e) => {
-        e.preventDefault();
+        if (e.preventDefault) e.preventDefault();
         setLoading(true);
         setError(null);
 
@@ -164,7 +171,10 @@ export default function MyAADETab({ mydataCredentials }) {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6" ref={containerRef} style={{ overflowY: 'auto' }}>
+            {/* Pull-to-Refresh Indicator */}
+            <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} />
+            
             {/* Filters */}
             <form onSubmit={handleFetch} className="bg-slate-50 dark:bg-slate-800 p-6 rounded-lg border border-gray-200 dark:border-slate-700">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
