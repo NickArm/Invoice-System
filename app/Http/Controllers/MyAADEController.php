@@ -112,15 +112,33 @@ class MyAADEController extends Controller
             curl_close($curl);
 
             if ($httpCode !== 200) {
+                $errorMsg = "myDATA API returned status $httpCode";
+                
+                // Try to extract meaningful error message from response
+                if ($response && is_string($response)) {
+                    // Try to parse as JSON first
+                    $jsonData = json_decode($response, true);
+                    if ($jsonData && isset($jsonData['message'])) {
+                        $errorMsg = $jsonData['message'];
+                    } else {
+                        // Fallback to stripping tags
+                        $extracted = trim(strip_tags($response));
+                        if (!empty($extracted)) {
+                            $errorMsg = $extracted;
+                        }
+                    }
+                }
+
                 Log::warning('myDATA API returned error', [
                     'http_code' => $httpCode,
                     'url' => $url,
-                    'response' => $response,
+                    'message' => $errorMsg,
+                    'response_preview' => substr($response, 0, 500),
                 ]);
 
                 return [
                     'success' => false,
-                    'message' => "myDATA API returned status $httpCode",
+                    'message' => $errorMsg,
                     'body' => $response
                 ];
             }
@@ -210,6 +228,238 @@ class MyAADEController extends Controller
 
             return $bookInfo;
         }, $bookInfoList);
+    }
+
+    /**
+     * Get detailed transaction information from myDATA
+     * Calls RequestTransmittedDocs to get line items for a specific mark
+     */
+    public function getDetails(Request $request)
+    {
+        $validated = $request->validate([
+            'mark' => 'required|string',
+        ]);
+
+        $user = auth()->user();
+
+        // Check if credentials are set
+        if (!$user->aade_username || !$user->mydata_subscription_key) {
+            return response()->json([
+                'success' => false,
+                'message' => 'myDATA credentials not configured.',
+                'data' => []
+            ], 422);
+        }
+
+        try {
+            $url = sprintf(
+                '%s/RequestTransmittedDocs?mark=%s',
+                self::MYDATA_BASE_URL,
+                $validated['mark']
+            );
+
+            Log::info('Fetching transaction details from myDATA', [
+                'mark' => $validated['mark'],
+                'user_id' => $user->id,
+            ]);
+
+            $response = $this->callMyDataApi($url, $user->aade_username, $user->mydata_subscription_key);
+
+            if (!$response['success']) {
+                // Extract error message from API response
+                $errorMsg = $response['message'];
+                if ($response['body'] && is_string($response['body'])) {
+                    // Try to parse as JSON first
+                    $jsonData = json_decode($response['body'], true);
+                    if ($jsonData && isset($jsonData['message'])) {
+                        $errorMsg = $jsonData['message'];
+                    } else {
+                        // Fallback to stripping tags
+                        $errorMsg = trim(strip_tags($response['body']));
+                    }
+                }
+                
+                Log::warning('RequestTransmittedDocs API error', [
+                    'message' => $errorMsg,
+                    'response_body' => substr($response['body'], 0, 500),
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                    'data' => []
+                ], 400);
+            }
+
+            Log::debug('RequestTransmittedDocs response received', [
+                'body_length' => strlen($response['body']),
+                'first_500_chars' => substr($response['body'], 0, 500),
+            ]);
+
+            $details = $this->parseTransmittedDocs($response['body']);
+
+            // If no details found, return aggregated data from the bookInfo
+            if (empty($details)) {
+                Log::info('No detailed docs found, returning aggregated data only', [
+                    'mark' => $validated['mark'],
+                ]);
+                
+                // Return empty array - frontend will show message
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Transaction details fetched (aggregated data only)',
+                    'data' => [],
+                    'note' => 'Detailed line items not available from myDATA API for this mark'
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Details fetched successfully',
+                'data' => $details,
+                'count' => count($details)
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('myDATA details fetch failed', [
+                'error' => $e->getMessage(),
+                'mark' => $validated['mark'],
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch details: ' . $e->getMessage(),
+                'data' => []
+            ], 500);
+        }
+    }
+
+    /**
+     * Parse RequestTransmittedDocs XML response to extract transmitted document details
+     */
+    private function parseTransmittedDocs(string $xmlString): array
+    {
+        try {
+            Log::debug('Parsing XML response', [
+                'xml_length' => strlen($xmlString),
+                'first_1000_chars' => substr($xmlString, 0, 1000),
+            ]);
+
+            // Check if response is empty or error
+            if (empty($xmlString) || strpos($xmlString, '<?xml') === false) {
+                Log::warning('Invalid XML response received', [
+                    'is_empty' => empty($xmlString),
+                    'content' => $xmlString,
+                ]);
+                return [];
+            }
+
+            $xml = simplexml_load_string($xmlString);
+
+            if ($xml === false) {
+                Log::error('XML parse error', [
+                    'xml_string' => $xmlString,
+                    'libxml_errors' => libxml_get_errors(),
+                ]);
+                return [];
+            }
+
+            Log::debug('XML loaded successfully', [
+                'root_element' => $xml->getName(),
+                'children_count' => count($xml->children()),
+            ]);
+
+            $docsList = [];
+
+            // Root is RequestedDoc, look for invoicesDoc
+            $invoicesDoc = $xml->invoicesDoc ?? $xml->InvoicesDoc ?? null;
+            
+            if (!$invoicesDoc) {
+                Log::warning('No invoicesDoc element found in response', [
+                    'root' => $xml->getName(),
+                    'children' => array_keys((array)$xml),
+                ]);
+                return [];
+            }
+
+            // Iterate through invoices
+            foreach ($invoicesDoc->invoice ?? $invoicesDoc->Invoice ?? [] as $invoice) {
+                Log::debug('Processing invoice element', [
+                    'mark' => (string)($invoice->mark ?? $invoice->Mark ?? ''),
+                ]);
+
+                $docData = [
+                    'mark' => (string)($invoice->mark ?? $invoice->Mark ?? ''),
+                    'uid' => (string)($invoice->uid ?? $invoice->Uid ?? ''),
+                    'issuer' => [
+                        'vatNumber' => (string)($invoice->issuer->vatNumber ?? $invoice->issuer->VatNumber ?? $invoice->Issuer->VatNumber ?? ''),
+                        'name' => (string)($invoice->issuer->name ?? $invoice->issuer->Name ?? $invoice->Issuer->Name ?? ''),
+                        'branch' => (string)($invoice->issuer->branch ?? $invoice->issuer->Branch ?? $invoice->Issuer->Branch ?? ''),
+                        'address' => (string)($invoice->issuer->address ?? $invoice->issuer->Address ?? $invoice->Issuer->Address ?? ''),
+                        'city' => (string)($invoice->issuer->city ?? $invoice->issuer->City ?? $invoice->Issuer->City ?? ''),
+                        'postalCode' => (string)($invoice->issuer->postalCode ?? $invoice->issuer->PostalCode ?? $invoice->Issuer->PostalCode ?? ''),
+                    ],
+                    'counterpart' => [
+                        'vatNumber' => (string)($invoice->counterpart->vatNumber ?? $invoice->counterpart->VatNumber ?? $invoice->Counterpart->VatNumber ?? ''),
+                        'name' => (string)($invoice->counterpart->name ?? $invoice->counterpart->Name ?? $invoice->Counterpart->Name ?? ''),
+                        'branch' => (string)($invoice->counterpart->branch ?? $invoice->counterpart->Branch ?? $invoice->Counterpart->Branch ?? ''),
+                        'address' => (string)($invoice->counterpart->address ?? $invoice->counterpart->Address ?? $invoice->Counterpart->Address ?? ''),
+                        'city' => (string)($invoice->counterpart->city ?? $invoice->counterpart->City ?? $invoice->Counterpart->City ?? ''),
+                        'postalCode' => (string)($invoice->counterpart->postalCode ?? $invoice->counterpart->PostalCode ?? $invoice->Counterpart->PostalCode ?? ''),
+                    ],
+                    'issueDate' => (string)($invoice->issueDate ?? $invoice->IssueDate ?? ''),
+                    'invoiceType' => (string)($invoice->invoiceType ?? $invoice->InvoiceType ?? ''),
+                    'series' => (string)($invoice->series ?? $invoice->Series ?? ''),
+                    'aa' => (string)($invoice->aa ?? $invoice->AA ?? ''),
+                    'vatAmount' => floatval($invoice->vatAmount ?? $invoice->VatAmount ?? 0),
+                    'netAmount' => floatval($invoice->netAmount ?? $invoice->NetAmount ?? 0),
+                    'grossAmount' => floatval($invoice->grossAmount ?? $invoice->GrossAmount ?? 0),
+                    'stampDutyAmount' => floatval($invoice->stampDutyAmount ?? $invoice->StampDutyAmount ?? 0),
+                    'otherTaxesAmount' => floatval($invoice->otherTaxesAmount ?? $invoice->OtherTaxesAmount ?? 0),
+                    'withheldAmount' => floatval($invoice->withheldAmount ?? $invoice->WithheldAmount ?? 0),
+                    'feesAmount' => floatval($invoice->feesAmount ?? $invoice->FeesAmount ?? 0),
+                    'deductionsAmount' => floatval($invoice->deductionsAmount ?? $invoice->DeductionsAmount ?? 0),
+                    'thirdPartyAmount' => floatval($invoice->thirdPartyAmount ?? $invoice->ThirdPartyAmount ?? 0),
+                    'discountAmount' => floatval($invoice->discountAmount ?? $invoice->DiscountAmount ?? 0),
+                    'currency' => (string)($invoice->currency ?? $invoice->Currency ?? 'EUR'),
+                    'exchangeRate' => floatval($invoice->exchangeRate ?? $invoice->ExchangeRate ?? 1),
+                    'lineItems' => []
+                ];
+
+                // Parse line items if present
+                $lineItems = $invoice->lineItems ?? $invoice->LineItems ?? null;
+                if ($lineItems) {
+                    foreach ($lineItems->lineItem ?? $lineItems->LineItem ?? [] as $lineItem) {
+                        $docData['lineItems'][] = [
+                            'lineNumber' => intval($lineItem->lineNumber ?? $lineItem->LineNumber ?? 0),
+                            'description' => (string)($lineItem->description ?? $lineItem->Description ?? ''),
+                            'quantity' => floatval($lineItem->quantity ?? $lineItem->Quantity ?? 0),
+                            'unitOfMeasurement' => (string)($lineItem->unitOfMeasurement ?? $lineItem->UnitOfMeasurement ?? ''),
+                            'unitPrice' => floatval($lineItem->unitPrice ?? $lineItem->UnitPrice ?? 0),
+                            'netAmount' => floatval($lineItem->netAmount ?? $lineItem->NetAmount ?? 0),
+                            'vatCategory' => (string)($lineItem->vatCategory ?? $lineItem->VatCategory ?? ''),
+                            'vatAmount' => floatval($lineItem->vatAmount ?? $lineItem->VatAmount ?? 0),
+                            'grossAmount' => floatval($lineItem->grossAmount ?? $lineItem->GrossAmount ?? 0),
+                            'discountOption' => (string)($lineItem->discountOption ?? $lineItem->DiscountOption ?? ''),
+                            'discountAmount' => floatval($lineItem->discountAmount ?? $lineItem->DiscountAmount ?? 0),
+                        ];
+                    }
+                }
+
+                $docsList[] = $docData;
+            }
+
+            Log::info('Parsed documents successfully', ['count' => count($docsList)]);
+            return $docsList;
+
+        } catch (\Exception $e) {
+            Log::error('Transmitted docs XML parsing failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return [];
+        }
     }
 
     /**

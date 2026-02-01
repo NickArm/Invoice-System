@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatCurrency, formatDate } from '@/Utils/formatting';
+import TransactionDetailsModal from '@/Components/TransactionDetailsModal';
 
 export default function MyAADETab({ mydataCredentials }) {
     const [type, setType] = useState('income');
@@ -18,6 +19,10 @@ export default function MyAADETab({ mydataCredentials }) {
         grossValue: 0,
         count: 0,
     });
+    const [selectedTransaction, setSelectedTransaction] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [detailsLoading, setDetailsLoading] = useState(false);
+    const [detailsError, setDetailsError] = useState(null);
 
     const handleFetch = async (e) => {
         e.preventDefault();
@@ -70,6 +75,75 @@ export default function MyAADETab({ mydataCredentials }) {
             setData([]);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleRowClick = async (item) => {
+        setSelectedTransaction(item);
+        setModalOpen(true);
+        setDetailsLoading(true);
+        setDetailsError(null);
+
+        try {
+            // Fetch transaction details
+            const detailsResponse = await fetch('/tools/myaade/details', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                },
+                body: JSON.stringify({
+                    mark: item.minMark,
+                }),
+            });
+
+            const detailsResult = await detailsResponse.json();
+
+            if (!detailsResponse.ok) {
+                setDetailsError(detailsResult.message || 'Failed to fetch transaction details');
+                return;
+            }
+
+            const transactionData = detailsResult.data && detailsResult.data.length > 0 ? detailsResult.data[0] : null;
+
+            // Fetch counterparty tax info if counterpart VAT is available
+            let counterpartInfo = null;
+            if (transactionData?.counterpart?.vatNumber) {
+                try {
+                    const taxResponse = await fetch('/tools/validate-tax-id', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                        },
+                        body: JSON.stringify({
+                            tax_id: transactionData.counterpart.vatNumber,
+                        }),
+                    });
+
+                    if (taxResponse.ok) {
+                        const taxResult = await taxResponse.json();
+                        counterpartInfo = taxResult.data;
+                    }
+                } catch (err) {
+                    console.log('Could not fetch counterpart info:', err.message);
+                    // Continue without counterpart info
+                }
+            }
+
+            setSelectedTransaction(prev => ({
+                ...prev,
+                details: transactionData,
+                counterpartInfo: counterpartInfo,
+            }));
+
+            if (!transactionData) {
+                setDetailsError('No detailed information found for this transaction');
+            }
+        } catch (err) {
+            setDetailsError('Error: ' + err.message);
+        } finally {
+            setDetailsLoading(false);
         }
     };
 
@@ -237,7 +311,8 @@ export default function MyAADETab({ mydataCredentials }) {
                                 {data.map((item, index) => (
                                     <tr
                                         key={index}
-                                        className="border-b border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                                        onClick={() => handleRowClick(item)}
+                                        className="border-b border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                                     >
                                         <td className="px-4 py-3 text-center">
                                             {item.uploaded ? (
@@ -291,6 +366,19 @@ export default function MyAADETab({ mydataCredentials }) {
                     <p>No data found. Set your filters and click "Fetch Data" to get started.</p>
                 </div>
             )}
+
+            {/* Transaction Details Modal */}
+            <TransactionDetailsModal
+                isOpen={modalOpen}
+                transaction={selectedTransaction}
+                isLoading={detailsLoading}
+                error={detailsError}
+                onClose={() => {
+                    setModalOpen(false);
+                    setSelectedTransaction(null);
+                    setDetailsError(null);
+                }}
+            />
         </div>
     );
 }
